@@ -1,8 +1,7 @@
-
-<div style="display: flex; justify-content: start; gap: 6pt; align-items: baseline;"> 
-    <img alt="Scala Logo" src="gh-pages/docs/images/logo.png" width="36" />
-    <span style="font-size: 36pt; font-weight: bold;">ScalaMetrics</span> 
-</div>
+<h1>
+  <img src="gh-pages/docs/images/logo.png" alt="Scala Logo" width="32" />
+  ScalaMetrics
+</h1>
 
 > The most comprehensive code metrics and code analysis library for Scala
 
