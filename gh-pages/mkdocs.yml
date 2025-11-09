@@ -1,0 +1,103 @@
+site_name: ScalaMetrics
+site_url: https://bitblends.github.io/scalametrics
+site_description: Comprehensive code metrics and analysis library for Scala
+site_author: BitBlends
+repo_name: scalametrics
+repo_url: https://github.com/bitblends/scalametrics
+edit_uri: edit/main/docs/
+theme:
+  name: material
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.instant.progress
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+    - toc.integrate
+  icon:
+    repo: fontawesome/brands/github
+  favicon: images/favicon.png
+  logo: images/logo.png
+plugins:
+  - search
+  - macros
+markdown_extensions:
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.details
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/bitblends/scalametrics
+  version:
+    provider: mike
+  generator: false
+  project_version: !!python/object/apply:os.getenv ["PROJECT_VERSION", "x.y.z"]
+extra_javascript:
+  - javascripts/katex.js
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+extra_css:
+  - https://unpkg.com/katex@0/dist/katex.min.css
+  - stylesheets/extra.css
+copyright: Copyright &copy; 2025 - ScalaMetrics Maintainers
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quick Start: getting-started/index.md
+  - Metrics Overview:
+    - Overview: metrics-overview/index.md
+    - Cyclomatic Complexity Analysis: metrics-overview/cyclomatic-complexity.md
+    - Pattern-Matching Complexity: metrics-overview/pattern-matching.md
+    - Nesting Depth Analysis: metrics-overview/nesting-depth.md
+    - Expression Branch Density Analysis: metrics-overview/branch-density.md
+    - Lines of code (LOC) Statistics: metrics-overview/LOC.md
+    - Documentation Coverage: metrics-overview/doc-coverage.md
+    - Parameters & Arity Analysis: metrics-overview/parameter.md
+    - Return-Type Explicitness: metrics-overview/return-type-explicit.md
+    - Inline & Implicit Analysis: metrics-overview/inline-implicit.md
+  - API Reference: api-reference/index.md
+
+
