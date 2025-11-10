@@ -30,28 +30,40 @@ jobs:
     outputs:
       only_gh_pages: ${{ steps.check.outputs.only_gh_pages }}
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-      - id: check
+      - name: Determine changed files
+        id: check
         run: |
           set -Eeuo pipefail
-          BEFORE='${{ github.event.before }}'
-          AFTER='${{ github.sha }}'
-          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
-            CHANGED="$(git diff-tree --no-commit-id --name-only -r "$AFTER")"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA='${{ github.event.pull_request.base.sha }}'
+            HEAD_SHA='${{ github.event.pull_request.head.sha }}'
+            # Ensure base commit is present
+            git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+            CHANGED="$(git diff --name-only "$BASE_SHA" "$HEAD_SHA")"
           else
-            CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
+            BEFORE='${{ github.event.before }}'
+            AFTER='${{ github.sha }}'
+            if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+              CHANGED="$(git diff-tree --no-commit-id --name-only -r "$AFTER")"
+            else
+              CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
+            fi
           fi
-          only=true
-          while IFS= read -r f; do
-            [ -z "$f" ] && continue
-            case "$f" in
-              gh-pages/*) ;;
-              *) only=false; break ;;
-            esac
-          done <<< "$CHANGED"
-          echo "only_gh_pages=$only" >> "$GITHUB_OUTPUT"
+          echo "Changed files:"
+          echo "$CHANGED"
+          if [ -z "$CHANGED" ]; then
+            echo "only_gh_pages=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # If any file does not start with gh-pages/ set flag to false
+          if echo "$CHANGED" | grep -v '^gh-pages/' >/dev/null; then
+            echo "only_gh_pages=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "only_gh_pages=true" >> "$GITHUB_OUTPUT"
 
   ##############
   # PR Labeler #
