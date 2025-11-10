@@ -41,6 +41,7 @@ theme:
 plugins:
   - search
   - macros
+  - autorefs
 markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
@@ -51,6 +52,7 @@ markdown_extensions:
       alternate_style: true
   - pymdownx.arithmatex:
       generic: true
+  - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.snippets
   - pymdownx.superfences
@@ -83,8 +85,7 @@ extra_css:
 copyright: Copyright &copy; 2025 - ScalaMetrics Maintainers
 nav:
   - Home: index.md
-  - Getting Started:
-    - Quick Start: getting-started/index.md
+  - Getting Started: getting-started/index.md
   - Metrics Overview:
     - Overview: metrics-overview/index.md
     - Cyclomatic Complexity Analysis: metrics-overview/cyclomatic-complexity.md
@@ -96,6 +97,7 @@ nav:
     - Parameters & Arity Analysis: metrics-overview/parameter.md
     - Return-Type Explicitness: metrics-overview/return-type-explicit.md
     - Inline & Implicit Analysis: metrics-overview/inline-implicit.md
+  - Metrics Reference: metrics-reference/index.md
   - API Reference: api-reference/index.md
 
 

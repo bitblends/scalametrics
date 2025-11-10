@@ -164,7 +164,7 @@ flags rising complexity here, it’s usually a nudge to either split handlers or
     ```scala
     sealed trait Token
     case class Number(n: Int) extends Token
-    case object Plus  extends Token
+    case object Plus extends Token
     case object Minus extends Token
     case class Ident(name: String) extends Token
 
@@ -250,7 +250,7 @@ failure-heavy paths.
       try {
         Right(a.toInt / b.toInt)
       } catch {
-        case _: NumberFormatException => Left("bad number")
+        case _: NumberFormatException => Left("bad number format")
         case _: ArithmeticException   => Left("division by zero")
       }
     ```

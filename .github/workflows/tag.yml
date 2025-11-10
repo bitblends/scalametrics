@@ -19,7 +19,7 @@ jobs:
   ##############
   enforce-all-checks:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     permissions:
       checks: read
     steps:

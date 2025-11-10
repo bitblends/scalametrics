@@ -88,10 +88,10 @@ place to edit and an obvious test to update.
 
     ```scala
     def allow(u: User, req: Req): Boolean = {
-      val roleOk   = u.role == Admin || u.role == Editor
-      val modeOk   = !req.readonly
-      val originOk = req.ip.isTrusted || u.isOnCall
-      roleOk && modeOk && originOk
+      val isRoleAllowed   = u.role == Admin || u.role == Editor
+      val isModify  = !req.readonly
+      val modAllowed = req.ip.isTrusted || u.isOnCall
+      isRoleAllowed && modeOk && modAllowed
     }
     ```
 
@@ -106,7 +106,7 @@ place to edit and an obvious test to update.
 
     ```scala
     def level(code: Int): String =
-      if (code < 0) "err" else if (code == 0) "warn" else "info"
+      if (code < 0) "error" else if (code == 0) "warn" else "info"
     ```
 
 === "After (ordered rules)"
@@ -114,7 +114,7 @@ place to edit and an obvious test to update.
     ```scala
     case class Rule(p: Int => Boolean, out: String)
     val rules = List(
-      Rule(_ < 0, "err"),
+      Rule(_ < 0, "error"),
       Rule(_ == 0, "warn"),
       Rule(_ => true, "info")
     )
