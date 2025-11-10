@@ -147,7 +147,7 @@ jobs:
       - name: Get Tag Message
         id: tag_message
         run: |
-          TAG='${{ steps.tagvars.outputs.tag_name }}'
+          TAG=${{ steps.tagvars.outputs.tag_name }}
           TAG_MESSAGE=$(git tag -l --format='%(contents)' ${{ steps.tagvars.outputs.tag_name }})
           echo "$TAG_MESSAGE" > tag_message.txt
       - name: Gather PR Information and Generate Release Notes
@@ -155,7 +155,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Initialize release notes
-          TAG='${{ needs.verify-tag.outputs.tag_name }}'
+          TAG=${{ needs.verify-tag.outputs.tag_name }}
           echo "## Release $TAG" > release_notes.md
           echo "" >> release_notes.md
           
@@ -251,7 +251,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG='${{ needs.verify-tag.outputs.tag_name }}'
+          TAG=${{ needs.verify-tag.outputs.tag_name }}
           gh release create "$TAG" \
             --title "Release $TAG" \
             --notes-file release_notes.md \
