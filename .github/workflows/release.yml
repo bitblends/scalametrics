@@ -3,23 +3,9 @@ name: Release
 # Triggered by:
 #   - tag.yml workflow (pushes a tag)
 #   - pushing a tag (manually)
-#   - manual dispatch
 on:
   push:
     tags: ['v*']
-#  workflow_dispatch:
-#    inputs:
-#      tag:
-#        description: 'Tag to Release (e.g. v1.2.3)'
-#        required: true
-#      skip_publish:
-#        description: 'Skip the publish job?'
-#        type: choice
-#        options:
-#          - 'no'
-#          - 'yes'
-#        default: 'yes'
-#        required: true
 
 permissions:
   id-token: write
@@ -28,6 +14,9 @@ permissions:
 
 jobs:
 
+  ######################
+  # Verify Tag on Main #
+  ######################
   verify-tag:
     runs-on: ubuntu-latest
     outputs:
@@ -51,23 +40,6 @@ jobs:
           fi
           echo "Resolved tag: $TAG_NAME"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
-
-      - name: Validate Manual Tag Input
-        if: github.event_name == 'workflow_dispatch'
-        run: |
-          set -Eeuo pipefail
-          INPUT_TAG='${{ steps.tagvars.outputs.tag_name }}'
-          if ! [[ "$INPUT_TAG" =~ ^v[0-9] ]]; then
-            echo "::error::Input tag '$INPUT_TAG' must start with v and a digit (e.g. v1.2.3)"
-            exit 1
-          fi
-          if ! git show-ref --tags --verify --quiet "refs/tags/$INPUT_TAG"; then
-            echo "::error::Tag '$INPUT_TAG' does not exist. Create & push it before dispatch."
-            exit 1
-          fi
-          if [[ "$GITHUB_REF" != refs/tags/* ]]; then
-            echo "Manual dispatch on '$GITHUB_REF' accepted because explicit tag '$INPUT_TAG' provided."
-          fi
 
       - name: Verify Tag is on main branch
         id: verify
@@ -111,7 +83,6 @@ jobs:
   # Publish to Sonatype #
   #######################
   publish:
-    # if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.skip_publish == 'yes') }}
     needs:
       - verify-tag
     runs-on: ubuntu-latest
@@ -140,8 +111,8 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         run: |
-            echo "REF_NAME=${{ needs.verify-tag.outputs.tag_name }}"
-            run: sbt -v ci-release
+          echo "REF_NAME=${{ needs.verify-tag.outputs.tag_name }}"
+          run: sbt -v ci-release
 
   #######################
   # Deploy GitHub Pages #
@@ -288,5 +259,55 @@ jobs:
             --title "Release $TAG" \
             --notes-file release_notes.md \
             --repo ${{ github.repository }}
+
+  ##################%%%%%%%
+  # Delete Tag (recovery) #
+  ##################%%%%%%%
+  cleanup-tag:
+    needs:
+      - verify-tag
+      - publish
+      - release
+    if: ${{ always() && (needs.verify-tag.result == 'failure' || needs.publish.result == 'failure' || needs.release.result == 'failure') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Delete pushed tag on failure
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -Eeuo pipefail
+  
+          # Extract tag from ref (e.g., refs/tags/v1.2.3 -> v1.2.3)
+          REF="$GITHUB_REF"
+          if [[ "$REF" == refs/tags/* ]]; then
+            TAG="${REF#refs/tags/}"
+          else
+            TAG="${{ needs.verify-tag.outputs.tag_name }}"
+          fi
+  
+          if [ -z "$TAG" ]; then
+            echo "No tag resolved. Skipping deletion."
+            exit 0
+          fi
+  
+          echo "Attempting to delete tag: $TAG"
+  
+          # Try GitHub API delete
+          if gh api -X DELETE "repos/${{ github.repository }}/git/refs/tags/$TAG"; then
+            echo "Deleted remote tag via GitHub API: $TAG"
+            exit 0
+          fi
+  
+          echo "GitHub API delete failed. Trying git push --delete..."
+  
+          # Fallback via git
+          git init -q
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}"
+          git push --delete origin "$TAG" || true
+          echo "Cleanup attempted for tag: $TAG"
 
 
