@@ -1,0 +1,84 @@
+name: Pages
+
+# Triggered by changes to the "gh-pages/" directory on the "main" branch (exclusively)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'gh-pages/**'
+  pull_request:
+    branches: [main]
+    types: [opened, reopened]
+    paths:
+      - 'gh-pages/**'
+
+concurrency:
+  group: pages-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+
+  ########################
+  # Detect Only gh-pages #
+  ########################
+  detect-only-gh-pages:
+    runs-on: ubuntu-latest
+    outputs:
+      only_gh_pages: ${{ steps.check.outputs.only_gh_pages }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - id: check
+        run: |
+          set -Eeuo pipefail
+          BEFORE='${{ github.event.before }}'
+          AFTER='${{ github.sha }}'
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+            CHANGED="$(git diff-tree --no-commit-id --name-only -r "$AFTER")"
+          else
+            CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
+          fi
+          only=true
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            case "$f" in
+              gh-pages/*) ;;
+              *) only=false; break ;;
+            esac
+          done <<< "$CHANGED"
+          echo "only_gh_pages=$only" >> "$GITHUB_OUTPUT"
+
+  ##############
+  # PR Labeler #
+  ##############
+  labele-pr:
+    needs: detect-only-gh-pages
+    if: ${{ github.event_name == 'pull_request' && needs.detect-only-gh-pages.outputs.only_gh_pages == 'true' }}
+    permissions:
+      contents: read
+      pull-requests: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Label PR
+        uses: TimonVS/pr-labeler-action@v5
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+  #######################
+  # Deploy GitHub Pages #
+  #######################
+  deploy-pages:
+    needs: detect-only-gh-pages
+    if: ${{ github.event_name == 'push' && needs.detect-only-gh-pages.outputs.only_gh_pages == 'true' }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-pages.yml
+
