@@ -30,77 +30,77 @@ jobs:
 
   verify-tag:
     runs-on: ubuntu-latest
+    outputs:
+      tag_name: ${{ steps.tagvars.outputs.tag_name }}
+      on_main: ${{ steps.verify.outputs.on_main }}
     steps:
       - name: Checkout full history
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
           fetch-tags: true
+
       - name: Resolve Tag
         id: tagvars
         run: |
           set -Eeuo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TAG_NAME='${{ github.event.inputs.tag }}'
+            TAG_NAME="${{ github.event.inputs.tag }}"
           else
-            TAG_NAME='${GITHUB_REF##*/}'
+            TAG_NAME="${GITHUB_REF##*/}"
           fi
+          echo "Resolved tag: $TAG_NAME"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+
       - name: Validate Manual Tag Input
         if: github.event_name == 'workflow_dispatch'
         run: |
           set -Eeuo pipefail
           INPUT_TAG='${{ steps.tagvars.outputs.tag_name }}'
-          # Pattern check
           if ! [[ "$INPUT_TAG" =~ ^v[0-9] ]]; then
             echo "::error::Input tag '$INPUT_TAG' must start with v and a digit (e.g. v1.2.3)"
             exit 1
           fi
-          # Must exist as a tag
           if ! git show-ref --tags --verify --quiet "refs/tags/$INPUT_TAG"; then
             echo "::error::Tag '$INPUT_TAG' does not exist. Create & push it before dispatch."
             exit 1
           fi
-          # GITHUB_REF will be a branch for workflow_dispatch; enforce that we only rely on the tag
           if [[ "$GITHUB_REF" != refs/tags/* ]]; then
             echo "Manual dispatch on '$GITHUB_REF' accepted because explicit tag '$INPUT_TAG' provided."
           fi
+
       - name: Verify Tag is on main branch
         id: verify
         run: |
           set -Eeuo pipefail
           TAG='${{ steps.tagvars.outputs.tag_name }}'
           echo "Resolved tag: $TAG"
-  
+
           if ! git show-ref --verify --quiet "refs/tags/$TAG"; then
             echo "::error::Tag $TAG not found."
             exit 1
           fi
-          
-          # Ensure origin/main exists
+
           if ! git show-ref --verify --quiet refs/remotes/origin/main; then
             echo "::error::origin/main not found in repository."
             exit 1
           fi
-  
-          # Resolve commit of the tag (fail if not resolvable)
+
           if ! TAG_COMMIT=$(git rev-list -n 1 "$TAG"); then
             echo "::error::Failed to resolve commit for tag $TAG"
             exit 1
           fi
-  
-          # Ensure we actually got a commit hash
           if [ -z "$TAG_COMMIT" ]; then
             echo "::error::Empty commit resolved for ref $GITHUB_REF"
             exit 1
           fi
-  
-          # Check if this commit is reachable from main
+
           if git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
             echo "on_main=true" >> "$GITHUB_OUTPUT"
           else
             echo "on_main=false" >> "$GITHUB_OUTPUT"
           fi
+
       - name: Stop if not on main
         if: steps.verify.outputs.on_main == 'false'
         run: |
