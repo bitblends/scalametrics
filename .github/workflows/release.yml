@@ -21,6 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag_name: ${{ steps.tagvars.outputs.tag_name }}
+      tag_ref: ${{ steps.tagvars.outputs.tag_ref }}
       on_main: ${{ steps.verify.outputs.on_main }}
     steps:
       - name: Checkout full history
@@ -28,36 +29,33 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
-
       - name: Resolve Tag
         id: tagvars
         run: |
           set -Eeuo pipefail
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             TAG_NAME="${{ github.event.inputs.tag }}"
+            TAG_REF="refs/tags/${{ github.event.inputs.tag }}"
           else
-            TAG_NAME="${GITHUB_REF##*/}"
+            TAG_NAME="${GITHUB_REF##*/}"          # v0.3.17
+            TAG_REF="${GITHUB_REF}"               # refs/tags/v0.3.17
           fi
-          echo "Resolved tag: $TAG_NAME"
           echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
-
+          echo "tag_ref=$TAG_REF" >> "$GITHUB_OUTPUT"
       - name: Verify Tag is on main branch
         id: verify
         run: |
           set -Eeuo pipefail
-          TAG='${{ steps.tagvars.outputs.tag_name }}'
+          TAG=${{ steps.tagvars.outputs.tag_name }}
           echo "Resolved tag: $TAG"
-
           if ! git show-ref --verify --quiet "refs/tags/$TAG"; then
             echo "::error::Tag $TAG not found."
             exit 1
           fi
-
           if ! git show-ref --verify --quiet refs/remotes/origin/main; then
             echo "::error::origin/main not found in repository."
             exit 1
           fi
-
           if ! TAG_COMMIT=$(git rev-list -n 1 "$TAG"); then
             echo "::error::Failed to resolve commit for tag $TAG"
             exit 1
@@ -66,13 +64,11 @@ jobs:
             echo "::error::Empty commit resolved for ref $GITHUB_REF"
             exit 1
           fi
-
           if git merge-base --is-ancestor "$TAG_COMMIT" origin/main; then
             echo "on_main=true" >> "$GITHUB_OUTPUT"
           else
             echo "on_main=false" >> "$GITHUB_OUTPUT"
           fi
-
       - name: Stop if not on main
         if: steps.verify.outputs.on_main == 'false'
         run: |
@@ -83,8 +79,7 @@ jobs:
   # Publish to Sonatype #
   #######################
   publish:
-    needs:
-      - verify-tag
+    needs: [verify-tag]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -110,9 +105,11 @@ jobs:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          RELEASE_TAG: ${{ needs.verify-tag.outputs.tag_name }}
         run: |
-          echo "REF_NAME=${{ needs.verify-tag.outputs.tag_name }}"
-          run: sbt -v ci-release
+          echo "Releasing tag $RELEASE_TAG"
+          echo "GITHUB_REF=${{ needs.verify-tag.outputs.tag_name }}"
+          sbt -v ci-release
 
   #######################
   # Deploy GitHub Pages #
@@ -150,7 +147,7 @@ jobs:
       - name: Get Tag Message
         id: tag_message
         run: |
-          TAG='${{ steps.tagvars.outputs.tag_name }}'
+          TAG=${{ steps.tagvars.outputs.tag_name }}
           TAG_MESSAGE=$(git tag -l --format='%(contents)' ${{ steps.tagvars.outputs.tag_name }})
           echo "$TAG_MESSAGE" > tag_message.txt
       - name: Gather PR Information and Generate Release Notes
@@ -158,7 +155,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Initialize release notes
-          TAG='${{ needs.verify-tag.outputs.tag_name }}'
+          TAG=${{ needs.verify-tag.outputs.tag_name }}
           echo "## Release $TAG" > release_notes.md
           echo "" >> release_notes.md
           
@@ -254,7 +251,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG='${{ needs.verify-tag.outputs.tag_name }}'
+          TAG=${{ needs.verify-tag.outputs.tag_name }}
           gh release create "$TAG" \
             --title "Release $TAG" \
             --notes-file release_notes.md \
@@ -309,5 +306,3 @@ jobs:
           git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}"
           git push --delete origin "$TAG" || true
           echo "Cleanup attempted for tag: $TAG"
-
-
