@@ -12,7 +12,7 @@ lazy val root = (project in file("."))
     organizationHomepage := Some(url("https://bitblends.com")),
     startYear := Some(2025),
     licenses += ("MIT", url("https://opensource.org/licenses/MIT")),
-    homepage := Some(url("https://github.com/bitblends/scalametrix")),
+    homepage := Some(url("https://github.com/bitblends/scalametrics")),
     headerLicense := Some(
       HeaderLicense.Custom(
         s"""|SPDX-FileCopyrightText: ${
@@ -62,7 +62,6 @@ lazy val root = (project in file("."))
       BuildInfoKey.action("currentTags")(git.gitCurrentTags.value),
       BuildInfoKey.action("currentBranch")(git.gitCurrentBranch.value)
     ),
-    coverageEnabled := true,
     pomIncludeRepository := { _ => false },
     javacOptions ++= Seq("--release", "17"),
     scalacOptions ++= Seq(

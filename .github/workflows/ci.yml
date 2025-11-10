@@ -1,11 +1,14 @@
 name: CI
 
+# Triggered by pushes to any branch except "main" and by PRs opened or reopened against "main"
 on:
   push:
     branches-ignore: [main]
   pull_request:
     branches: [main]
     types: [opened, reopened]
+    paths-ignore:
+      - 'gh-pages/**'
 
 concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
@@ -23,7 +26,7 @@ jobs:
   build:
     if: github.event_name != 'pull_request' || github.event.pull_request.merged == false
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout code
         uses: actions/checkout@v5

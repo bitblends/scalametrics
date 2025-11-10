@@ -1,8 +1,11 @@
 name: Tag
 
+# Trigger only on pushes to the "main" branch, ignoring changes in "gh-pages/"
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'gh-pages/**'
 
 permissions:
   id-token: write
@@ -11,11 +14,38 @@ permissions:
 
 jobs:
 
+  ###########################
+  # Detect gh-pages/ Change #
+  ###########################
+  gh-pages-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.check.outputs.skip }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Check for gh-pages Changes
+        id: check
+        run: |
+          set -euo pipefail
+          echo "Diff range: ${{ github.event.before }}..${{ github.sha }}"
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^gh-pages/'; then
+            echo "Changes in gh-pages/ detected. Will skip tag creation."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No gh-pages/ changes. Proceed."
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
   ############
   # Tag Bump #
   ############
-  create-tag:
+  tag:
     name: Create a Tag
+    needs: gh-pages-changes
+    if: needs.detect-gh-changes.outputs.skip != 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
@@ -25,7 +55,6 @@ jobs:
         uses: actions/checkout@v5
         id: checkout
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
           fetch-depth: '0'
           fetch-tags: true
       - name: Set up JDK 17
