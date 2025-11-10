@@ -2,7 +2,11 @@
 title: Getting Started
 description: Learn how to install and use ScalaMetrics for comprehensive code metrics and analysis in your Scala projects.
 keywords: [ScalaMetrics, getting started, installation, code metrics, Scala, static analysis]
+layout: doc
+hide: [title]
 ---
+
+# Getting Started
 
 ## Installation
 
@@ -16,10 +20,17 @@ The library is cross-compiled for Scala 2.12.20, 2.13.17, and 3.3.6.
 
 ## Quick Start
 
-### Full Project Statistics
+ScalaMetrics offers a wide range of code metrics to help you analyze and improve the quality of your Scala codebase.
+There are two types of metrics that ScalaMetrics is able to generate: `Aggregated Project Statistics` and `Raw Metrics`.
+The aggregated stats is generally recommended for most use cases as it provides a more concise view of the codebase
+while still capturing important details through roll-ups.
 
-For a complete project analysis you can provide a minimal `ProjectInfo` case class, source files, and the base directory of the project to receive a `ProjectStats` case class.
-This case class contains aggregated statistics for the entire project, including file-level, package-level, and method and member-level statistics (with roll-ups).
+### Aggregated Project Statistics
+
+For a complete project analysis you can provide a minimal `ProjectInfo` case class, source files, and the base directory
+of the project to receive a `ProjectStats` case class.
+This case class contains aggregated statistics for the entire project, including file-level, package-level, and method
+and member-level statistics (with roll-ups).
 
 ``` scala
 import java.io.File
@@ -52,13 +63,16 @@ val projectStats: ProjectStats = ScalaMetrics.generateProjectStats(
 )
 ```
 
----
+For detailed documentation on all available metrics and their definitions, such as `MethodMetrics`, `MemberMetrics`,
+`MemberStats`, etc. please refer to the [API Reference][api-reference].
 
 ### Raw Metrics
-If you are only interested in the raw metrics with no roll-ups, you can use `generateProjectMetrics` which returns a `ProjectMetrics` case class containing file-level metrics only.
-You can then process these raw metrics based on your needs.
 
-#### Full project analysis with raw metrics
+If you are only interested in the raw metrics with no roll-ups, you can use `generateProjectMetrics` which returns a
+`ProjectMetrics` case class containing file-level metrics only. You can then process these raw metrics based on your
+specific needs.
+
+#### Full project analysis
 
 ``` scala
 import java.io.File
@@ -90,8 +104,11 @@ val projectMetrics: ProjectMetrics = ScalaMetrics.generateProjectMetrics(
   projectInfo = projectInfo
 )
 ```
+
 #### Analyze a single file (with automatic dialect detection)
-You can analyze a single Scala file to get its metrics using `generateFileMetrics`. The dialect will be automatically detected based on the file content.
+
+You can analyze a single Scala file to get its metrics using `generateFileMetrics`. The dialect will be automatically
+detected based on the file content.
 
 ``` scala
 import java.io.File
@@ -103,7 +120,9 @@ val result: Option[FileMetricsResult] = ScalaMetrics.generateFileMetrics(file)
 ```
 
 #### Analyze a single file with a dialect
+
 You can also specify a dialect explicitly if you want to override the automatic detection.
+
 ``` scala
 import java.io.File
 import com.bitblends.scalametrics.ScalaMetrics
@@ -122,7 +141,9 @@ val result: Option[FileMetricsResult] = ScalaMetrics.generateFileMetrics(file, d
 
 ---
 
-`ProjectMetrics` case class contains raw metrics for the entire project, including file-level, member-level, and method-level metrics (no package or roll-ups):
+`ProjectMetrics` case class contains raw metrics for the entire project, including file-level, member-level, and
+method-level metrics (no package or roll-ups). `FileMetricsResult` case class contains the metrics for a single file
+along with its methods and members.
 
 ``` scala
 case class ProjectMetrics(
@@ -137,29 +158,3 @@ case class FileMetricsResult(
 )
 ```
 
-`ProjectStats` case class contains aggregated statistics for the entire project, including file-level, package-level, and method and member-level statistics (roll-ups):
-
-``` scala
-
-case class ProjectStats(
-    header: ProjectStatsHeader,
-    projectRollup: ProjectRollup,
-    packages: Vector[Package]
-)
-
-case class Package(packageRollup: PackageRollup, fileStats: Vector[FileStats])
-
-case class FileStats(
-    header: FileStatsHeader,
-    fileRollup: FileRollup,
-    declarationStats: DeclarationStats
-)
-
-case class DeclarationStats(
-    memberStats: Vector[MemberStats],
-    methodStats: Vector[MethodStats]
-)
-
-```
-
-For detailed documentation on all available metrics and their definitions, such as `MethodMetrics`, `MemberMetrics`, `MemberStats`, etc. please refer to the [API Reference](../api-reference/index.md).

@@ -40,15 +40,15 @@ ScalaMetrics is a powerful static analysis library for Scala projects. It provid
 
 - **Multi-Level Analysis**: Extract metrics at project, package, file, method, and member levels
 - **Comprehensive Metrics**:
-  - Cyclomatic complexity
-  - Nesting depth
-  - Expression branch density
-  - Pattern matching
-  - Lines of code
-  - Documentation coverage
-  - Parameter and arity (implicit, using, default, varargs)
-  - Return type explicitness
-  - Inline and implicit usage
+    - Cyclomatic complexity
+    - Nesting depth
+    - Expression branch density
+    - Pattern matching
+    - Lines of code
+    - Documentation coverage
+    - Parameter and arity (implicit, using, default, varargs)
+    - Return type explicitness
+    - Inline and implicit usage
 - **Raw and Aggregated Metrics**: Provides both raw and aggregated metrics for detailed insights
 - **Multiple Dialect Support**: Supports Scala 2.12, 2.13, and 3.3
 - **Immutable Design**: Functional pipeline architecture with immutable data flow
@@ -56,10 +56,8 @@ ScalaMetrics is a powerful static analysis library for Scala projects. It provid
 - **Automatic Dialect Detection**: Automatically detects Scala dialects for accurate parsing using a combination of
    heuristics and statistical methods
 
-## Getting Started
-Please refer to the [Getting Started Guide](getting-started/index.md) for installation instructions and quick start 
-examples.
-You can also explore the [Metrics Overview](metrics-overview/index.md) to learn about the various metrics provided by 
+Please refer to the [Getting Started Guide][getting-started] guide for installation instructions and quick start examples.
+You can also explore the [Metrics Overview][measuring-what-matters-a-gentle-introduction] to learn about the various metrics provided by 
 ScalaMetrics and see how they can help improve your code quality.
 
 ## Contributing

@@ -14,7 +14,8 @@ import java.io.File
   * identifier, package, size, and lines of code.
   *
   * @param projectId
-  *   An optional identifier for the project to which the file belongs.
+  *   An optional identifier for the project to which the file belongs. It will be `None` when the metrics are generated
+  *   for a single file or multiple files with no project.
   * @param fileId
   *   The unique identifier for the file within the project.
   * @param file

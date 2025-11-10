@@ -6,26 +6,74 @@
 package com.bitblends.scalametrics.stats.model
 
 /**
-  * Represents detailed metrics and properties of a member in a Scala codebase.
+  * Represents detailed statistics and metadata for a member (e.g., class, object, method, etc.) within a source file.
+  * Provides information such as name, type, access modifiers, code metrics, pattern matching statistics, and branch
+  * density metrics.
   *
-  * This case class extends the `MemberBase` trait to model a member's descriptive and metric-based properties, such as
-  * its type, access modifier, code structure details, whether it has Scaladoc, and additional metrics related to
-  * pattern matching and branch density. Below is an overview of the member's attributes provided by this class:
-  *
-  *   - General identifiers and descriptors: Includes the member's name, unique file identifier, and its signature.
-  *   - Member type and modifiers: Specifies the type of member (e.g., `val`, `var`, `class`, `trait`), access modifiers
-  *     (public, private, etc.), whether it is abstract, implicit, or has inline modifiers, among others.
-  *   - Scaladoc and deprecation status: Indicates whether the member is documented with Scaladoc and whether it is
-  *     marked as deprecated.
-  *   - Code complexity and structure: Includes metrics such as cyclomatic complexity and nesting depth, and provides
-  *     information about explicit return types and inferred return types.
-  *   - Pattern matching metrics: Includes details like the number of matches, cases, guards, wildcards, and nested
-  *     matches, as well as the maximum nesting level and average number of cases per match.
-  *   - Branch density metrics: Provides counts related to branches, `if` statements, `case` statements, loops, boolean
-  *     operations, and includes metrics such as branch density and boolean operations density per 100 lines of code.
-  *
-  * It provides a structured representation suitable for modeling metrics and metadata at a member level in the context
-  * of analyzing and reporting codebase statistics.
+  * @param fileId
+  *   The identifier of the file containing the member.
+  * @param name
+  *   The name of the member.
+  * @param memberType
+  *   The type of the member, such as "val", "var", "type", "class", "object", or "trait".
+  * @param signature
+  *   The fully qualified signature of the member, including its parameters and return type if applicable.
+  * @param accessModifier
+  *   The access modifier (e.g., `public`, `private`, `protected`) of the member.
+  * @param linesOfCode
+  *   The number of lines of code comprising the member.
+  * @param hasScaladoc
+  *   Indicates whether the member has associated Scaladoc comments.
+  * @param isDeprecated
+  *   Indicates whether the member is marked as deprecated.
+  * @param cComplexity
+  *   The cyclomatic complexity of the member, reflecting the number of independent paths through its code.
+  * @param nestingDepth
+  *   The nesting depth of the member, representing the extent of nested constructs within it.
+  * @param hasInlineModifier
+  *   Indicates whether the member includes the `inline` modifier.
+  * @param isGivenInstance
+  *   Indicates whether the member is defined as a `given` instance (Scala 3 feature).
+  * @param isGivenConversion
+  *   Indicates whether the member is a `given` conversion (Scala 3 feature).
+  * @param isImplicit
+  *   Indicates whether the member uses the `implicit` modifier.
+  * @param isAbstract
+  *   Indicates whether the member is abstract.
+  * @param hasExplicitReturnType
+  *   Indicates whether the member has an explicitly defined return type.
+  * @param inferredReturnType
+  *   Optionally specifies the return type of the member if it is inferred.
+  * @param pmMatches
+  *   The total number of pattern matches in the member.
+  * @param pmCases
+  *   The total number of case clauses used in pattern matching within the member.
+  * @param pmGuards
+  *   The total number of guards in case clauses for pattern matching within the member.
+  * @param pmWildcards
+  *   The count of wildcard matches used in pattern matching within the member.
+  * @param pmMaxNesting
+  *   The maximum nesting depth of pattern matches within the member.
+  * @param pmNestedMatches
+  *   The number of nested pattern matches within the member.
+  * @param pmAvgCasesPerMatch
+  *   The average number of cases per pattern match within the member.
+  * @param bdBranches
+  *   The total number of branching constructs (e.g., if, case) within the member.
+  * @param bdIfCount
+  *   The count of `if` constructs in the member.
+  * @param bdCaseCount
+  *   The count of `case` constructs in the member.
+  * @param bdLoopCount
+  *   The count of loop constructs within the member.
+  * @param bdCatchCaseCount
+  *   The count of `catch` case blocks within the member.
+  * @param bdBoolOpsCount
+  *   The count of boolean operations (e.g., `&&`, `||`) within the member.
+  * @param bdDensityPer100
+  *   The branching density, calculated as the number of branches per 100 lines of code.
+  * @param bdBoolOpsPer100
+  *   The density of boolean operations, calculated as the number of boolean operations per 100 lines of code.
   */
 case class MemberStats(
     fileId: String,

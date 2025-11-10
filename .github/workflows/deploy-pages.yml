@@ -66,6 +66,7 @@ jobs:
           pip install --no-input PyYAML
           pip install --no-input mkdocs-material
           pip install --no-input mkdocs-macros-plugin
+          pip install --no-input mkdocs-autorefs
           mkdocs build
       - name: Upload gh-pages Artifact
         id: deployment
