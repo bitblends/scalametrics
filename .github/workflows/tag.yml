@@ -14,11 +14,26 @@ permissions:
 
 jobs:
 
+  ##############
+  # Job Status #
+  ##############
+  enforce-all-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      checks: read
+    steps:
+      - name: GitHub Checks
+        uses: poseidon/wait-for-status-checks@v0.6.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   ###########################
   # Detect gh-pages/ Change #
   ###########################
   gh-pages-changes:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     outputs:
       skip: ${{ steps.check.outputs.skip }}
     steps:

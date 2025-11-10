@@ -20,6 +20,20 @@ permissions:
 
 jobs:
 
+  ##############
+  # Job Status #
+  ##############
+  enforce-all-checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      checks: read
+    steps:
+      - name: GitHub Checks
+        uses: poseidon/wait-for-status-checks@v0.6.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
   ###########################
   # Compile, ScalaFmt, Tests
   ###########################
