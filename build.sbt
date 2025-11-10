@@ -62,7 +62,6 @@ lazy val root = (project in file("."))
       BuildInfoKey.action("currentTags")(git.gitCurrentTags.value),
       BuildInfoKey.action("currentBranch")(git.gitCurrentBranch.value)
     ),
-    coverageEnabled := true,
     pomIncludeRepository := { _ => false },
     javacOptions ++= Seq("--release", "17"),
     scalacOptions ++= Seq(
