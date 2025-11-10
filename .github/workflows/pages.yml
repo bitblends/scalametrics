@@ -36,6 +36,7 @@ jobs:
           fetch-depth: 0
       - name: Determine changed files
         id: check
+        shell: bash
         run: |
           set -Eeuo pipefail
           if [ "${{ github.event_name }}" = "pull_request" ]; then
@@ -52,12 +53,16 @@ jobs:
               CHANGED="$(git diff --name-only "$BEFORE" "$AFTER")"
             fi
           fi
+
           echo "Changed files:"
-            echo "$CHANGED"
+          echo "$CHANGED"
+
           if [ -z "$CHANGED" ]; then
             echo "only_gh_pages=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
+
+          # If any file is outside gh-pages/, do not mark as only_gh_pages
           if echo "$CHANGED" | grep -v '^gh-pages/' >/dev/null; then
             echo "only_gh_pages=false" >> "$GITHUB_OUTPUT"
           else
