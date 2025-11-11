@@ -38,14 +38,14 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
     val result = MemberAnalyzer.run(ctx)
 
     result.members should have size 2
-    val classMetric = result.members.find(_.memberType == "class")
+    val classMetric = result.members.find(_.metadata.declarationType == "class")
     classMetric shouldBe defined
-    classMetric.get.name shouldBe "com.example.MyClass"
-    classMetric.get.accessModifier shouldBe "public"
+    classMetric.get.metadata.name shouldBe "com.example.MyClass"
+    classMetric.get.metadata.accessModifier shouldBe "public"
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.name shouldBe "com.example.MyClass.x"
+    valMetric.get.metadata.name shouldBe "com.example.MyClass.x"
   }
 
   it should "analyze a simple object definition" in {
@@ -61,9 +61,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
     val result = MemberAnalyzer.run(ctx)
 
     result.members should have size 2
-    val objectMetric = result.members.find(_.memberType == "object")
+    val objectMetric = result.members.find(_.metadata.declarationType == "object")
     objectMetric shouldBe defined
-    objectMetric.get.name shouldBe "com.example.MyObject"
+    objectMetric.get.metadata.name shouldBe "com.example.MyObject"
   }
 
   it should "analyze a trait definition" in {
@@ -80,8 +80,8 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.members should have size 1
     val traitMetric = result.members.head
-    traitMetric.memberType shouldBe "trait"
-    traitMetric.name shouldBe "com.example.MyTrait"
+    traitMetric.metadata.declarationType shouldBe "trait"
+    traitMetric.metadata.name shouldBe "com.example.MyTrait"
   }
 
   it should "analyze val and var members" in {
@@ -97,13 +97,13 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.name shouldBe "com.example.Test.immutable"
+    valMetric.get.metadata.name shouldBe "com.example.Test.immutable"
 
-    val varMetric = result.members.find(_.memberType == "var")
+    val varMetric = result.members.find(_.metadata.declarationType == "var")
     varMetric shouldBe defined
-    varMetric.get.name shouldBe "com.example.Test.mutable"
+    varMetric.get.metadata.name shouldBe "com.example.Test.mutable"
   }
 
   it should "analyze type definitions" in {
@@ -118,10 +118,10 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val typeMetric = result.members.find(_.memberType == "type")
+    val typeMetric = result.members.find(_.metadata.declarationType == "type")
     typeMetric shouldBe defined
-    typeMetric.get.name shouldBe "com.example.Types.StringList"
-    typeMetric.get.signature should include("type StringList")
+    typeMetric.get.metadata.name shouldBe "com.example.Types.StringList"
+    typeMetric.get.metadata.signature should include("type StringList")
   }
 
   it should "detect private access modifiers" in {
@@ -136,9 +136,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.accessModifier shouldBe "private"
+    valMetric.get.metadata.accessModifier shouldBe "private"
   }
 
   it should "detect protected access modifiers" in {
@@ -153,9 +153,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.accessModifier shouldBe "protected"
+    valMetric.get.metadata.accessModifier shouldBe "protected"
   }
 
   it should "detect Scaladoc comments" in {
@@ -173,11 +173,13 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val documentedMetric = result.members.find(m => m.memberType == "val" && m.name.contains("documented"))
+    val documentedMetric =
+      result.members.find(m => m.metadata.declarationType == "val" && m.metadata.name.contains("documented"))
     documentedMetric shouldBe defined
     documentedMetric.get.hasScaladoc shouldBe true
 
-    val notDocumentedMetric = result.members.find(m => m.memberType == "val" && m.name.contains("notDocumented"))
+    val notDocumentedMetric =
+      result.members.find(m => m.metadata.declarationType == "val" && m.metadata.name.contains("notDocumented"))
     notDocumentedMetric shouldBe defined
     notDocumentedMetric.get.hasScaladoc shouldBe false
   }
@@ -195,9 +197,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.isDeprecated shouldBe true
+    valMetric.get.metadata.isDeprecated shouldBe true
   }
 
   it should "detect implicit modifiers" in {
@@ -212,9 +214,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.isImplicit shouldBe true
+    valMetric.get.inlineAndImplicitMetrics.isImplicit shouldBe true
   }
 
   it should "compute cyclomatic complexity for val with complex RHS" in {
@@ -229,7 +231,7 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
     valMetric.get.cComplexity should be > 1
   }
@@ -250,10 +252,10 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.bdBranches should be > 0
-    valMetric.get.bdIfCount should be > 0
+    valMetric.get.bdMetrics.branches should be > 0
+    valMetric.get.bdMetrics.ifCount should be > 0
   }
 
   it should "analyze nested classes" in {
@@ -271,12 +273,14 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
     val result = MemberAnalyzer.run(ctx)
 
     result.members.size should be >= 3
-    val outerMetric = result.members.find(m => m.memberType == "class" && m.name.endsWith("Outer"))
+    val outerMetric =
+      result.members.find(m => m.metadata.declarationType == "class" && m.metadata.name.endsWith("Outer"))
     outerMetric shouldBe defined
 
-    val innerMetric = result.members.find(m => m.memberType == "class" && m.name.contains("Inner"))
+    val innerMetric =
+      result.members.find(m => m.metadata.declarationType == "class" && m.metadata.name.contains("Inner"))
     innerMetric shouldBe defined
-    innerMetric.get.name should include("Outer.Inner")
+    innerMetric.get.metadata.name should include("Outer.Inner")
   }
 
   it should "extract constructor field metrics" in {
@@ -292,16 +296,16 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
     // Should have: class + 3 constructor fields
     result.members.size should be >= 3
 
-    val nameField = result.members.find(m => m.memberType == "val" && m.name.contains("name"))
+    val nameField = result.members.find(m => m.metadata.declarationType == "val" && m.metadata.name.contains("name"))
     nameField shouldBe defined
-    nameField.get.accessModifier shouldBe "public"
+    nameField.get.metadata.accessModifier shouldBe "public"
 
-    val ageField = result.members.find(m => m.memberType == "var" && m.name.contains("age"))
+    val ageField = result.members.find(m => m.metadata.declarationType == "var" && m.metadata.name.contains("age"))
     ageField shouldBe defined
 
-    val idField = result.members.find(m => m.name.contains("id"))
+    val idField = result.members.find(m => m.metadata.name.contains("id"))
     idField shouldBe defined
-    idField.get.accessModifier shouldBe "private"
+    idField.get.metadata.accessModifier shouldBe "private"
   }
 
   it should "handle objects within classes" in {
@@ -318,9 +322,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val objectMetric = result.members.find(_.memberType == "object")
+    val objectMetric = result.members.find(_.metadata.declarationType == "object")
     objectMetric shouldBe defined
-    objectMetric.get.name should include("CompanionLike")
+    objectMetric.get.metadata.name should include("CompanionLike")
   }
 
   it should "compute pattern matching metrics" in {
@@ -339,11 +343,11 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.pmMatches should be > 0
-    valMetric.get.pmCases should be > 0
-    valMetric.get.pmWildcards should be > 0
+    valMetric.get.pmMetrics.matches should be > 0
+    valMetric.get.pmMetrics.cases should be > 0
+    valMetric.get.pmMetrics.wildcards should be > 0
   }
 
   it should "handle multiple patterns in val declarations" in {
@@ -358,9 +362,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.signature should include("a")
+    valMetric.get.metadata.signature should include("a")
   }
 
   it should "handle default package" in {
@@ -373,13 +377,13 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val classMetric = result.members.find(_.memberType == "class")
+    val classMetric = result.members.find(_.metadata.declarationType == "class")
     classMetric shouldBe defined
-    classMetric.get.name shouldBe "MyClass"
+    classMetric.get.metadata.name shouldBe "MyClass"
 
-    val valMetric = result.members.find(_.memberType == "val")
+    val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.name shouldBe "MyClass.x"
+    valMetric.get.metadata.name shouldBe "MyClass.x"
   }
 
   it should "handle Scala 3 given definitions" in {
@@ -397,9 +401,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val givenMetric = result.members.find(_.memberType == "given")
+    val givenMetric = result.members.find(_.metadata.declarationType == "given")
     givenMetric shouldBe defined
-    givenMetric.get.isGivenInstance shouldBe true
+    givenMetric.get.inlineAndImplicitMetrics.isGivenInstance shouldBe Some(true)
   }
 
   it should "detect lines of code for members" in {
@@ -418,9 +422,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val valMetric = result.members.find(m => m.memberType == "val" && m.name.contains("x"))
+    val valMetric = result.members.find(m => m.metadata.declarationType == "val" && m.metadata.name.contains("x"))
     valMetric shouldBe defined
-    valMetric.get.linesOfCode should be > 1
+    valMetric.get.metadata.linesOfCode should be > 1
   }
 
   it should "not analyze def methods (handled by MethodAnalyzer)" in {
@@ -436,7 +440,7 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
     val result = MemberAnalyzer.run(ctx)
 
     // Should only have the class, not the method
-    result.members.exists(_.memberType == "def") shouldBe false
+    result.members.exists(_.metadata.declarationType == "def") shouldBe false
   }
 
   it should "handle complex nesting with multiple scopes" in {
@@ -455,11 +459,12 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MemberAnalyzer.run(ctx)
 
-    val deepValueMetric = result.members.find(m => m.memberType == "val" && m.name.contains("deepValue"))
+    val deepValueMetric =
+      result.members.find(m => m.metadata.declarationType == "val" && m.metadata.name.contains("deepValue"))
     deepValueMetric shouldBe defined
-    deepValueMetric.get.name should include("Outer")
-    deepValueMetric.get.name should include("MiddleObject")
-    deepValueMetric.get.name should include("Inner")
+    deepValueMetric.get.metadata.name should include("Outer")
+    deepValueMetric.get.metadata.name should include("MiddleObject")
+    deepValueMetric.get.metadata.name should include("Inner")
   }
 
   it should "require fileId to be set in context" in {

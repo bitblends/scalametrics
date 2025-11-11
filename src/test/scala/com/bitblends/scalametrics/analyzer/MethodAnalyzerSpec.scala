@@ -44,12 +44,12 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.name shouldBe "com.example.MyObject.simple"
-    method.signature shouldBe "simple(): Int"
-    method.isAbstract shouldBe false
-    method.accessModifier shouldBe "public"
-    method.totalParams shouldBe 0
-    method.paramLists shouldBe 1
+    method.metadata.name shouldBe "com.example.MyObject.simple"
+    method.metadata.signature shouldBe "simple(): Int"
+    method.inlineAndImplicitMetrics.isAbstract shouldBe false
+    method.metadata.accessModifier shouldBe "public"
+    method.parameterMetrics.totalParams shouldBe 0
+    method.parameterMetrics.paramLists shouldBe 1
   }
 
   it should "analyze a method with parameters" in {
@@ -66,11 +66,11 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.name shouldBe "com.example.MyObject.add"
-    method.signature should include("x: Int")
-    method.signature should include("y: Int")
-    method.totalParams shouldBe 2
-    method.paramLists shouldBe 1
+    method.metadata.name shouldBe "com.example.MyObject.add"
+    method.metadata.signature should include("x: Int")
+    method.metadata.signature should include("y: Int")
+    method.parameterMetrics.totalParams shouldBe 2
+    method.parameterMetrics.paramLists shouldBe 1
   }
 
   it should "analyze a method with multiple parameter lists" in {
@@ -87,8 +87,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.totalParams shouldBe 2
-    method.paramLists shouldBe 2
+    method.parameterMetrics.totalParams shouldBe 2
+    method.parameterMetrics.paramLists shouldBe 2
   }
 
   it should "detect implicit parameters" in {
@@ -105,8 +105,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.implicitParams shouldBe 1
-    method.implicitParamLists shouldBe 1
+    method.parameterMetrics.implicitParams shouldBe 1
+    method.parameterMetrics.implicitParamLists shouldBe 1
   }
 
   it should "detect default parameters" in {
@@ -123,7 +123,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.defaultedParams shouldBe 2
+    method.parameterMetrics.defaultedParams shouldBe 2
   }
 
   it should "detect vararg parameters" in {
@@ -140,7 +140,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.varargParams shouldBe 1
+    method.parameterMetrics.varargParams shouldBe 1
   }
 
   it should "detect by-name parameters" in {
@@ -157,7 +157,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.byNameParams shouldBe 1
+    method.parameterMetrics.byNameParams shouldBe 1
   }
 
   it should "detect private access modifier" in {
@@ -174,7 +174,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.accessModifier shouldBe "private"
+    method.metadata.accessModifier shouldBe "private"
   }
 
   it should "detect protected access modifier" in {
@@ -191,7 +191,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.accessModifier shouldBe "protected"
+    method.metadata.accessModifier shouldBe "protected"
   }
 
   it should "detect Scaladoc comments" in {
@@ -210,11 +210,11 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
     val result = MethodAnalyzer.run(ctx)
 
     result.methods should have size 2
-    val documented = result.methods.find(_.name.contains("documented"))
+    val documented = result.methods.find(_.metadata.name.contains("documented"))
     documented shouldBe defined
     documented.get.hasScaladoc shouldBe true
 
-    val notDocumented = result.methods.find(_.name.contains("notDocumented"))
+    val notDocumented = result.methods.find(_.metadata.name.contains("notDocumented"))
     notDocumented shouldBe defined
     notDocumented.get.hasScaladoc shouldBe false
   }
@@ -234,7 +234,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.isDeprecated shouldBe true
+    method.metadata.isDeprecated shouldBe true
   }
 
   it should "compute cyclomatic complexity for method with conditionals" in {
@@ -302,10 +302,10 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmMatches shouldBe 1
-    method.pmCases shouldBe 4
-    method.pmGuards should be > 0
-    method.pmWildcards should be > 0
+    method.pmMetrics.matches shouldBe 1
+    method.pmMetrics.cases shouldBe 4
+    method.pmMetrics.guards should be > 0
+    method.pmMetrics.guards should be > 0
   }
 
   it should "compute branch density metrics" in {
@@ -326,8 +326,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdBranches should be > 0
-    method.bdIfCount should be > 0
+    method.bdMetrics.branches should be > 0
+    method.bdMetrics.ifCount should be > 0
   }
 
   it should "detect explicit return type" in {
@@ -344,7 +344,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.hasExplicitReturnType shouldBe true
+    method.inlineAndImplicitMetrics.hasExplicitReturnType shouldBe true
   }
 
   it should "detect inferred return type" in {
@@ -361,8 +361,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.hasExplicitReturnType shouldBe false
-    method.inferredReturnType shouldBe defined
+    method.inlineAndImplicitMetrics.hasExplicitReturnType shouldBe false
+    method.inlineAndImplicitMetrics.inferredReturnType shouldBe defined
   }
 
   it should "analyze abstract method declarations" in {
@@ -379,10 +379,10 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.name shouldBe "com.example.MyTrait.abstractMethod"
-    method.isAbstract shouldBe true
-    method.hasExplicitReturnType shouldBe true
-    method.totalParams shouldBe 2
+    method.metadata.name shouldBe "com.example.MyTrait.abstractMethod"
+    method.inlineAndImplicitMetrics.isAbstract shouldBe true
+    method.inlineAndImplicitMetrics.hasExplicitReturnType shouldBe true
+    method.parameterMetrics.totalParams shouldBe 2
     method.cComplexity shouldBe 0
     method.nestingDepth shouldBe 0
   }
@@ -401,8 +401,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.signature should include("[T]")
-    method.signature should include("value: T")
+    method.metadata.signature should include("[T]")
+    method.metadata.signature should include("value: T")
   }
 
   it should "handle methods with complex type parameters" in {
@@ -419,8 +419,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.signature should include("[T")
-    method.signature should include("U")
+    method.metadata.signature should include("[T")
+    method.metadata.signature should include("U")
   }
 
   it should "analyze nested methods" in {
@@ -439,13 +439,13 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
     val result = MethodAnalyzer.run(ctx)
 
     result.methods should have size 2
-    val outer = result.methods.find(_.name.contains("outer"))
+    val outer = result.methods.find(_.metadata.name.contains("outer"))
     outer shouldBe defined
-    outer.get.isNested shouldBe false
+    outer.get.metadata.isNested shouldBe false
 
-    val inner = result.methods.find(_.name.contains("inner"))
+    val inner = result.methods.find(_.metadata.name.contains("inner"))
     inner shouldBe defined
-    inner.get.isNested shouldBe true
+    inner.get.metadata.isNested shouldBe true
   }
 
   it should "analyze methods in nested classes" in {
@@ -464,9 +464,9 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.name should include("Outer")
-    method.name should include("Inner")
-    method.name should include("method")
+    method.metadata.name should include("Outer")
+    method.metadata.name should include("Inner")
+    method.metadata.name should include("method")
   }
 
   it should "count lines of code for methods" in {
@@ -488,7 +488,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.linesOfCode should be > 1
+    method.metadata.linesOfCode should be > 1
   }
 
   it should "handle methods with pattern matching in parameters" in {
@@ -507,7 +507,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmMatches should be > 0
+    method.pmMetrics.matches should be > 0
   }
 
   it should "handle methods with loop constructs" in {
@@ -530,7 +530,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdLoopCount should be > 0
+    method.bdMetrics.loopCount should be > 0
   }
 
   it should "handle methods with try-catch blocks" in {
@@ -553,7 +553,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdCatchCaseCount should be > 0
+    method.bdMetrics.catchCaseCount should be > 0
   }
 
   it should "handle methods with boolean operators" in {
@@ -572,7 +572,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdBoolOpsCount should be > 0
+    method.bdMetrics.boolOpsCount should be > 0
   }
 
   it should "detect implicit conversion methods" in {
@@ -589,7 +589,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.isImplicitConversion shouldBe true
+    method.inlineAndImplicitMetrics.isImplicitConversion shouldBe true
   }
 
   it should "handle methods in companion objects" in {
@@ -608,8 +608,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.name should include("MyClass")
-    method.name should include("apply")
+    method.metadata.name should include("MyClass")
+    method.metadata.name should include("apply")
   }
 
   it should "handle methods with lambda functions in body" in {
@@ -628,7 +628,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
     val result = MethodAnalyzer.run(ctx)
 
     // Should have the outer method
-    val outerMethod = result.methods.find(_.name.contains("withLambda"))
+    val outerMethod = result.methods.find(_.metadata.name.contains("withLambda"))
     outerMethod shouldBe defined
   }
 
@@ -644,7 +644,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.name shouldBe "MyObject.method"
+    method.metadata.name shouldBe "MyObject.method"
   }
 
   it should "detect parent member for nested methods" in {
@@ -662,10 +662,10 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val result = MethodAnalyzer.run(ctx)
 
-    val nestedMethod = result.methods.find(_.name.contains("nested"))
+    val nestedMethod = result.methods.find(_.metadata.name.contains("nested"))
     nestedMethod shouldBe defined
-    nestedMethod.get.parentMember shouldBe defined
-    nestedMethod.get.parentMember.get should include("val")
+    nestedMethod.get.metadata.parentMember shouldBe defined
+    nestedMethod.get.metadata.parentMember.get should include("val")
   }
 
   it should "compute average cases per match" in {
@@ -694,8 +694,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmMatches shouldBe 2
-    method.pmAvgCasesPerMatch should be > 0.0
+    method.pmMetrics.matches shouldBe 2
+    method.pmMetrics.avgCasesPerMatch should be > 0.0
   }
 
   it should "handle methods with for comprehensions" in {
@@ -737,7 +737,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdDensityPer100 should be >= 0.0
+    method.bdMetrics.densityPer100 should be >= 0.0
   }
 
   it should "require fileId to be set in context" in {
@@ -782,8 +782,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmNestedMatches should be > 0
-    method.pmMaxNesting should be > 1
+    method.pmMetrics.nestedMatches should be > 0
+    method.pmMetrics.maxNesting should be > 1
   }
 
   it should "handle empty method body" in {
@@ -818,11 +818,11 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.totalParams shouldBe 4
-    method.defaultedParams shouldBe 1
-    method.byNameParams shouldBe 1
-    method.varargParams shouldBe 1
-    method.implicitParams shouldBe 1
+    method.parameterMetrics.totalParams shouldBe 4
+    method.parameterMetrics.defaultedParams shouldBe 1
+    method.parameterMetrics.byNameParams shouldBe 1
+    method.parameterMetrics.varargParams shouldBe 1
+    method.parameterMetrics.implicitParams shouldBe 1
   }
 
   // Helper methods

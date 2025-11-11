@@ -9,6 +9,13 @@ import scala.compiletime.constValueTuple
   * statistics package and can be extended by specific statistical entities.
   */
 trait StatsBase extends Product:
+
+  /**
+   * Converts the current instance of a class implementing StatsBase into a Map where
+   * keys represent the field names of the class and values represent the corresponding field values.
+   *
+   * @return a Map[String, Any] representation of the current instance.
+   */
   def toMap: Map[String, Any] = StatsBase.productToMap(this)
 
 /**
@@ -18,6 +25,13 @@ trait StatsBase extends Product:
   */
 object StatsBase:
 
+  /**
+   * Flattens a nested map into a single-level map with keys representing the hierarchical path.
+   *
+   * @param map the nested map to be flattened, where each key represents a string and the value can be any type
+   * @param prefix an optional prefix to prepend to the keys of the map, default is an empty string
+   * @return a single-level map where keys represent the hierarchical path in the original map and values are preserved
+   */
   def flatten(map: Map[String, Any], prefix: String = ""): Map[String, Any] =
     map.flatMap {
       case (k, v: Map[_, _]) =>
@@ -26,6 +40,14 @@ object StatsBase:
         Map((if (prefix.isEmpty) k else s"$prefix.$k") -> v)
     }
 
+  /**
+   * Converts a given value to its JSON string representation.
+   *
+   * @param v the value to be converted into JSON. Supported types include:
+   *          null, Map, Seq, String, Boolean, Int, Long, Double, or any other type.
+   *          Maps are expected to have string keys.
+   * @return the JSON string representation of the value.
+   */
   def toJson(v: Any): String = v match {
     case null         => "null"
     case m: Map[_, _] =>
@@ -42,6 +64,13 @@ object StatsBase:
     case other => "\"" + escape(other.toString) + "\""
   }
 
+  /**
+   * Escapes special characters in a given string to make it JSON-safe.
+   *
+   * @param s the input string to be escaped
+   * @return the escaped string where special characters are replaced with their
+   *         corresponding escape sequences
+   */
   private def escape(s: String): String =
     s.flatMap {
       case '"'              => "\\\""
@@ -59,9 +88,22 @@ object StatsBase:
 //    val names = constValueTuple[m.MirroredElemLabels].toList.asInstanceOf[List[String]]
 //    names.zip(p.productIterator.toList.map(norm)).toMap
 
+  /**
+   * Converts a given Product instance (e.g., case class, tuple) into a Map representation where the keys are
+   * the element names and the values are the normalized representations of the corresponding elements.
+   *
+   * @param p the Product instance to be converted into a Map
+   * @return a Map where the keys are the names of the Product's elements and the values are their normalized values
+   */
   private def productToMap(p: Product): Map[String, Any] =
     p.productElementNames.zip(p.productIterator.toSeq).map { case (n, v) => n -> norm(v) }.toMap
 
+  /**
+   * Normalizes a given value into a simplified or specific representation based on its type.
+   *
+   * @param v the input value to be normalized; it can be an instance of StatsBase, Option, Seq, Map, Product, or any other type
+   * @return the normalized representation of the input value
+   */
   private def norm(v: Any): Any = v match {
     case s: StatsBase => s.toMap
     case o: Option[_] => o.map(norm).orNull

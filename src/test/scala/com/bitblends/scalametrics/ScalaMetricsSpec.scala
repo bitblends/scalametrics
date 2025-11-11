@@ -1317,12 +1317,12 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     rollup.totalSymbols should be >= 5 // Methods + cache member + implicit val
 
     // Verify branch density metrics
-    rollup.bdIfCount should be >= 2 // if statements in getUser and capitalize
-    rollup.bdCaseCount should be >= 2 // pattern match cases in findById
-    rollup.bdBoolOpsCount should be >= 1 // && in saveUser
+    rollup.branchDensityStats.ifCount should be >= 2 // if statements in getUser and capitalize
+    rollup.branchDensityStats.caseCount should be >= 2 // pattern match cases in findById
+    rollup.branchDensityStats.boolOpsCount should be >= 1 // && in saveUser
 
     // Verify implicit metrics
-    rollup.implicitVals shouldBe 0 // implicit val in RichString
+    rollup.inlineAndImplicitStats.implicitVals shouldBe 0 // implicit val in RichString
 
     // Verify cyclomatic complexity
     rollup.avgCyclomaticComplexity should be > 0.0
@@ -1508,14 +1508,14 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     rollup.maxNestingDepth should be >= 3 // deeplyNested method
 
     // Verify pattern matching metrics
-    rollup.patternMatches should be >= 2 // Two match expressions in highComplexity
-    rollup.patternMatchingCases should be >= 5 // Total cases across all matches
-    rollup.patternMatchingGuards should be >= 1 // Guard in the first case
-    rollup.patternMatchingMaxNesting should be >= 1 // Nested match in highComplexity
+    rollup.patternMatchingStats.matches should be >= 2 // Two match expressions in highComplexity
+    rollup.patternMatchingStats.cases should be >= 5 // Total cases across all matches
+    rollup.patternMatchingStats.guards should be >= 1 // Guard in the first case
+    rollup.patternMatchingStats.maxNesting should be >= 1 // Nested match in highComplexity
 
     // Verify branch metrics
-    rollup.bdIfCount should be >= 6 // Multiple if statements
-    rollup.bdCaseCount should be >= 5 // Pattern match cases
+    rollup.branchDensityStats.ifCount should be >= 6 // Multiple if statements
+    rollup.branchDensityStats.caseCount should be >= 5 // Pattern match cases
 
     testFile.delete()
   }
@@ -1602,9 +1602,9 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     // Verify Scala 3 specific features are captured
     rollup.totalFunctions should be >= 3 // extension methods + compare
-    rollup.givenInstances should be >= 1 // given Ordering instance
-    rollup.patternMatches should be >= 1 // Pattern match in describe
-    rollup.patternMatchingCases should be >= 3 // Three cases in describe
+    rollup.inlineAndImplicitStats.givenInstances should be >= 1 // given Ordering instance
+    rollup.patternMatchingStats.matches should be >= 1 // Pattern match in describe
+    rollup.patternMatchingStats.cases should be >= 3 // Three cases in describe
 
     testFile.delete()
   }
@@ -1648,13 +1648,13 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     // Total defs/vals/vars: 6 (4 methods + 2 vals)
     rollup.totalDefsValsVars shouldBe 6
-    rollup.explicitDefsValsVars shouldBe 3 // explicit, explicitVal, privateExplicit
-    rollup.returnTypeExplicitness shouldBe 50.0 // 3 out of 6 are explicit
+    rollup.inlineAndImplicitStats.explicitDefsValsVars shouldBe 3 // explicit, explicitVal, privateExplicit
+    rollup.inlineAndImplicitStats.returnTypeExplicitness shouldBe 50.0 // 3 out of 6 are explicit
 
     // Public defs/vals/vars: 4 (2 public methods + 2 public vals)
     rollup.totalPublicDefsValsVars shouldBe 4
-    rollup.explicitPublicDefsValsVars shouldBe 2 // explicit, explicitVal
-    rollup.publicReturnTypeExplicitness shouldBe 50.0 // 2 out of 4 are explicit
+    rollup.inlineAndImplicitStats.explicitPublicDefsValsVars shouldBe 2 // explicit, explicitVal
+    rollup.inlineAndImplicitStats.publicReturnTypeExplicitness shouldBe 50.0 // 2 out of 4 are explicit
 
     testFile.delete()
   }
@@ -1737,9 +1737,9 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     val rollup = result.projectRollup
 
-    rollup.inlineMethods should be >= 1 // inlineMethod
-    rollup.inlineVals should be >= 1 // inlineVal
-    rollup.inlineParams should be >= 1 // inline parameter in withInlineParam
+    rollup.inlineAndImplicitStats.inlineMethods should be >= 1 // inlineMethod
+    rollup.inlineAndImplicitStats.inlineVals should be >= 1 // inlineVal
+    rollup.inlineAndImplicitStats.inlineParams should be >= 1 // inline parameter in withInlineParam
 
     testFile.delete()
   }
@@ -1779,9 +1779,9 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     val rollup = result.projectRollup
 
-    rollup.implicitConversions shouldBe 2 // stringToInt and intToString
-    rollup.implicitVals shouldBe 1 // defaultTimeout
-    rollup.implicitVars shouldBe 1 // mutableImplicit
+    rollup.inlineAndImplicitStats.implicitConversions shouldBe 2 // stringToInt and intToString
+    rollup.inlineAndImplicitStats.implicitVals shouldBe 1 // defaultTimeout
+    rollup.inlineAndImplicitStats.implicitVars shouldBe 1 // mutableImplicit
 
     testFile.delete()
   }
