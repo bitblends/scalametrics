@@ -44,7 +44,7 @@ ScalaMetrics is a powerful static analysis library for Scala projects. It provid
 Add ScalaMetrics to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.bitblends" %% "scalametrics" % "0.1.0"
+libraryDependencies += "com.bitblends" %% "scalametrics" % "x.y.z"
 ```
 
 ## Documentation
