@@ -37,18 +37,6 @@ package com.bitblends.scalametrics.metrics.model
   *   The number of given instances defined within the package.
   * @param givenConversions
   *   The number of given conversions defined within the package.
-  * @param pmMatches
-  *   The number of pattern matches within the package.
-  * @param pmCases
-  *   The total number of cases defined in pattern matches.
-  * @param pmGuards
-  *   The total number of guards used in pattern matches.
-  * @param pmWildcards
-  *   The count of wildcard patterns used in pattern matches.
-  * @param pmMaxNesting
-  *   The maximum depth of nested pattern matches within the package.
-  * @param pmNestedMatches
-  *   The total count of nested pattern matches in the package.
   */
 case class PackageMetrics(
     // Basic package info
@@ -70,10 +58,5 @@ case class PackageMetrics(
     givenInstances: Int,
     givenConversions: Int,
     // Pattern matching metrics
-    pmMatches: Int,
-    pmCases: Int,
-    pmGuards: Int,
-    pmWildcards: Int,
-    pmMaxNesting: Int,
-    pmNestedMatches: Int
+    pmMetrics: PatternMatchingMetrics
 )

@@ -5,7 +5,8 @@
 
 package com.bitblends.scalametrics.metrics
 
-import com.bitblends.scalametrics.analyzer.model.{PatternMatchingItem, PatternMatchingMetrics}
+import com.bitblends.scalametrics.analyzer.model.PatternMatchingItem
+import com.bitblends.scalametrics.metrics.model.PatternMatchingMetrics
 
 import scala.meta._
 
@@ -176,9 +177,10 @@ object PatternMatching extends Metric[PatternMatchingMetrics] {
       cases = mCases,
       guards = mGuards,
       wildcards = mWildcards,
-      maxMatchNesting = maxDepth,
+      maxNesting = maxDepth,
       nestedMatches = nestedCount,
-      perMatchCases = Nil
+      avgCasesPerMatch = if (mMatches == 0) 0.0 else mCases.toDouble / mMatches,
+      matchCases = Nil
     )
   }
 

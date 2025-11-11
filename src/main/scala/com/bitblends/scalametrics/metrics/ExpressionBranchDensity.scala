@@ -5,7 +5,8 @@
 
 package com.bitblends.scalametrics.metrics
 
-import com.bitblends.scalametrics.analyzer.model.{BranchDensityItem, BranchDensityMetrics}
+import com.bitblends.scalametrics.analyzer.model.BranchDensityItem
+import com.bitblends.scalametrics.metrics.model.BranchDensityMetrics
 
 import scala.meta._
 

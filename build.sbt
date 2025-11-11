@@ -101,5 +101,11 @@ lazy val root = (project in file("."))
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.14.0",
       "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
       "org.scalatest" %% "scalatest" % "3.2.19" % Test
-    )
+    ),
+    libraryDependencies ++= {
+      if (scalaBinaryVersion.value == "2.12")
+        Seq("org.scala-lang" % "scala-reflect" % scalaVersion.value)
+      else
+        Nil
+    }
   )

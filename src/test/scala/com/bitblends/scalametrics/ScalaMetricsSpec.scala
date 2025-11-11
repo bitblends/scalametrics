@@ -1508,10 +1508,10 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     rollup.maxNestingDepth should be >= 3 // deeplyNested method
 
     // Verify pattern matching metrics
-    rollup.pmMatches should be >= 2 // Two match expressions in highComplexity
-    rollup.pmCases should be >= 5 // Total cases across all matches
-    rollup.pmGuards should be >= 1 // Guard in the first case
-    rollup.pmMaxNesting should be >= 1 // Nested match in highComplexity
+    rollup.patternMatches should be >= 2 // Two match expressions in highComplexity
+    rollup.patternMatchingCases should be >= 5 // Total cases across all matches
+    rollup.patternMatchingGuards should be >= 1 // Guard in the first case
+    rollup.patternMatchingMaxNesting should be >= 1 // Nested match in highComplexity
 
     // Verify branch metrics
     rollup.bdIfCount should be >= 6 // Multiple if statements
@@ -1603,8 +1603,8 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     // Verify Scala 3 specific features are captured
     rollup.totalFunctions should be >= 3 // extension methods + compare
     rollup.givenInstances should be >= 1 // given Ordering instance
-    rollup.pmMatches should be >= 1 // Pattern match in describe
-    rollup.pmCases should be >= 3 // Three cases in describe
+    rollup.patternMatches should be >= 1 // Pattern match in describe
+    rollup.patternMatchingCases should be >= 3 // Three cases in describe
 
     testFile.delete()
   }

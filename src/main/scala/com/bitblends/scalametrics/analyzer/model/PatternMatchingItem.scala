@@ -5,6 +5,8 @@
 
 package com.bitblends.scalametrics.analyzer.model
 
+import com.bitblends.scalametrics.metrics.model.PatternMatchingMetrics
+
 import scala.meta.Position
 
 /**

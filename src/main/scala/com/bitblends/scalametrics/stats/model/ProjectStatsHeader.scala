@@ -61,29 +61,4 @@ case class ProjectStatsHeader(
     developers: Option[String] = None,
     versionScheme: Option[String] = None,
     projectInfoNameFormal: Option[String] = None
-) {
-
-  /**
-    * Converts the properties of the case class implementing the `Product` trait into a `Map[String, String]`, where the
-    * keys correspond to field names and the values are string representations of the field values. Handles `Option`
-    * values by converting `Some` to the contained value and `None` to an empty string. Collections such as `Seq` are
-    * joined into a comma-separated string.
-    *
-    * @return
-    *   a map where keys are the names of the fields and values are the string representations of the corresponding
-    *   field values.
-    */
-  def toMap: Map[String, String] = {
-    this.productElementNames
-      .zip(this.productIterator)
-      .map { case (name, value) =>
-        name -> (value match {
-          case Some(v)     => v.toString
-          case None        => ""
-          case seq: Seq[_] => seq.mkString(", ")
-          case v           => v.toString
-        })
-      }
-      .toMap
-  }
-}
+) extends StatsBase

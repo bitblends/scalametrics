@@ -8,7 +8,14 @@ package com.bitblends.scalametrics.analyzer
 import com.bitblends.scalametrics.analyzer.TypeInfer._
 import com.bitblends.scalametrics.analyzer.model._
 import com.bitblends.scalametrics.metrics._
-import com.bitblends.scalametrics.metrics.model.MethodMetrics
+import com.bitblends.scalametrics.metrics.model.{
+  BranchDensityMetrics,
+  InlineAndImplicitMetrics,
+  Metadata,
+  MethodMetrics,
+  PatternMatchingMetrics,
+  ParameterMetrics => ParamMetrics
+}
 import com.bitblends.scalametrics.utils.Util
 import com.bitblends.scalametrics.utils.Util._
 
@@ -119,11 +126,11 @@ object MethodAnalyzer extends Analyzer {
       val arity = Parameter.forDef(d)
       val pmMetrics = d.body match {
         case t: Term => PatternMatching.compute(t)
-        case _       => PatternMatchingMetrics(0, 0, 0, 0, 0, 0, Nil)
+        case _       => PatternMatchingMetrics()
       }
-      val bdMetrics = d.body match {
+      val bdMetricsResult = d.body match {
         case t: Term => ExpressionBranchDensity.compute(t)
-        case _       => BranchDensityMetrics(0, 0, 0, 0, 0, 0, 0)
+        case _       => BranchDensityMetrics()
       }
       val inlineAndImplicits = InlineAndImplicits.forDef(d)
       val fullName = {
@@ -132,47 +139,60 @@ object MethodAnalyzer extends Analyzer {
       }
 
       val mm = MethodMetrics(
-        fileId = fid,
-        name = fullName,
-        signature = renderSignature(d),
-        accessModifier = access,
-        linesOfCode = loc,
-        isNested = s.isNestedLocal,
-        hasScaladoc = hasScaladoc,
-        isDeprecated = deprecated,
-        parentMember = parentMember,
+        metadata = Metadata(
+          fileId = fid,
+          name = fullName,
+          signature = renderSignature(d),
+          accessModifier = access,
+          linesOfCode = loc,
+          isDeprecated = deprecated,
+          isNested = s.isNestedLocal,
+          declarationType = "def",
+          parentMember = parentMember
+        ),
         cComplexity = cc,
         nestingDepth = nestDepth,
-        totalParams = arity.totalParams,
-        paramLists = arity.paramLists,
-        implicitParamLists = arity.implicitParamLists,
-        usingParamLists = arity.usingParamLists,
-        implicitParams = arity.implicitParams,
-        usingParams = arity.usingParams,
-        defaultedParams = arity.defaultedParams,
-        byNameParams = arity.byNameParams,
-        varargParams = arity.varargParams,
-        inlineParamCount = arity.inlineParams,
-        hasInlineModifier = inlineAndImplicits.isInlineMethod,
-        isImplicitConversion = inlineAndImplicits.hasImplicitConversion,
-        isAbstract = false,
-        hasExplicitReturnType = rtExplicitness.hasExplicitReturnType,
-        inferredReturnType = rtExplicitness.inferredReturnType,
-        pmMatches = pmMetrics.matches,
-        pmCases = pmMetrics.cases,
-        pmGuards = pmMetrics.guards,
-        pmWildcards = pmMetrics.wildcards,
-        pmMaxNesting = pmMetrics.maxMatchNesting,
-        pmNestedMatches = pmMetrics.nestedMatches,
-        pmAvgCasesPerMatch = pmMetrics.avgCasesPerMatch,
-        bdBranches = bdMetrics.branches,
-        bdIfCount = bdMetrics.ifCount,
-        bdCaseCount = bdMetrics.caseCount,
-        bdLoopCount = bdMetrics.loopCount,
-        bdCatchCaseCount = bdMetrics.catchCaseCount,
-        bdBoolOpsCount = bdMetrics.boolOpsCount,
-        bdDensityPer100 = bdMetrics.densityPer100,
-        bdBoolOpsPer100 = bdMetrics.boolOpsPer100
+        hasScaladoc = hasScaladoc,
+        parameterMetrics = ParamMetrics(
+          totalParams = arity.totalParams,
+          paramLists = arity.paramLists,
+          implicitParamLists = arity.implicitParamLists,
+          usingParamLists = arity.usingParamLists,
+          implicitParams = arity.implicitParams,
+          usingParams = arity.usingParams,
+          defaultedParams = arity.defaultedParams,
+          byNameParams = arity.byNameParams,
+          varargParams = arity.varargParams
+        ),
+        inlineAndImplicitMetrics = InlineAndImplicitMetrics(
+          hasInlineModifier = inlineAndImplicits.isInlineMethod,
+          inlineParamCount = Some(arity.inlineParams),
+          isImplicitConversion = inlineAndImplicits.hasImplicitConversion,
+          isImplicit = inlineAndImplicits.hasImplicitMod,
+          isAbstract = false,
+          hasExplicitReturnType = rtExplicitness.hasExplicitReturnType,
+          inferredReturnType = rtExplicitness.inferredReturnType
+        ),
+        pmMetrics = PatternMatchingMetrics(
+          matches = pmMetrics.matches,
+          cases = pmMetrics.cases,
+          guards = pmMetrics.guards,
+          wildcards = pmMetrics.wildcards,
+          maxNesting = pmMetrics.maxNesting,
+          nestedMatches = pmMetrics.nestedMatches,
+          avgCasesPerMatch = if (pmMetrics.matches == 0) 0.0 else pmMetrics.cases.toDouble / pmMetrics.matches,
+          matchCases = Nil
+        ),
+        bdMetrics = BranchDensityMetrics(
+          branches = bdMetricsResult.branches,
+          ifCount = bdMetricsResult.ifCount,
+          caseCount = bdMetricsResult.caseCount,
+          loopCount = bdMetricsResult.loopCount,
+          catchCaseCount = bdMetricsResult.catchCaseCount,
+          boolOpsCount = bdMetricsResult.boolOpsCount,
+          densityPer100 = if (loc == 0) 0.0 else 100.0 * bdMetricsResult.branches.toDouble / loc,
+          boolOpsPer100 = if (loc == 0) 0.0 else 100.0 * bdMetricsResult.boolOpsCount.toDouble / loc
+        )
       )
 
       val (s2, inner) = inOwner(s, DefOwner(d.name.value)) { ss => visit(d.body, ss) }
@@ -215,47 +235,42 @@ object MethodAnalyzer extends Analyzer {
       }
 
       val mm = MethodMetrics(
-        fileId = fid,
-        name = fullName,
-        signature = renderSignatureDecl(d),
-        accessModifier = access,
-        linesOfCode = loc,
-        isNested = s.isNestedLocal,
-        hasScaladoc = hasDoc,
-        isDeprecated = deprecated,
-        parentMember = parentMember,
+        metadata = Metadata(
+          fileId = fid,
+          name = fullName,
+          signature = renderSignatureDecl(d),
+          accessModifier = access,
+          linesOfCode = loc,
+          isDeprecated = deprecated,
+          isNested = s.isNestedLocal,
+          declarationType = "def",
+          parentMember = parentMember
+        ),
         cComplexity = 0,
         nestingDepth = s.defDepth,
-        totalParams = arity.totalParams,
-        paramLists = arity.paramLists,
-        implicitParamLists = arity.implicitParamLists,
-        usingParamLists = arity.usingParamLists,
-        implicitParams = arity.implicitParams,
-        usingParams = arity.usingParams,
-        defaultedParams = arity.defaultedParams,
-        byNameParams = arity.byNameParams,
-        varargParams = arity.varargParams,
-        inlineParamCount = arity.inlineParams,
-        hasInlineModifier = inlineAndImplicits.isInlineMethod,
-        isImplicitConversion = inlineAndImplicits.hasImplicitConversion,
-        isAbstract = true,
-        hasExplicitReturnType = true,
-        inferredReturnType = None,
-        pmMatches = 0,
-        pmCases = 0,
-        pmGuards = 0,
-        pmWildcards = 0,
-        pmMaxNesting = 0,
-        pmNestedMatches = 0,
-        pmAvgCasesPerMatch = 0.0,
-        bdBranches = 0,
-        bdIfCount = 0,
-        bdCaseCount = 0,
-        bdLoopCount = 0,
-        bdCatchCaseCount = 0,
-        bdBoolOpsCount = 0,
-        bdDensityPer100 = 0.0,
-        bdBoolOpsPer100 = 0.0
+        hasScaladoc = hasDoc,
+        parameterMetrics = ParamMetrics(
+          totalParams = arity.totalParams,
+          paramLists = arity.paramLists,
+          implicitParamLists = arity.implicitParamLists,
+          usingParamLists = arity.usingParamLists,
+          implicitParams = arity.implicitParams,
+          usingParams = arity.usingParams,
+          defaultedParams = arity.defaultedParams,
+          byNameParams = arity.byNameParams,
+          varargParams = arity.varargParams
+        ),
+        inlineAndImplicitMetrics = InlineAndImplicitMetrics(
+          hasInlineModifier = inlineAndImplicits.isInlineMethod,
+          inlineParamCount = Some(arity.inlineParams),
+          isImplicitConversion = inlineAndImplicits.hasImplicitConversion,
+          isImplicit = inlineAndImplicits.hasImplicitMod,
+          isAbstract = true,
+          hasExplicitReturnType = true,
+          inferredReturnType = None
+        ),
+        pmMetrics = PatternMatchingMetrics(),
+        bdMetrics = BranchDensityMetrics()
       )
       (s, Vector(mm))
     }

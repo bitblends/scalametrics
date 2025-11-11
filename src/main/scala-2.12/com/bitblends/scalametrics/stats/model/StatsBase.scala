@@ -1,0 +1,78 @@
+package com.bitblends.scalametrics.stats.model
+import com.bitblends.scalametrics.stats.model.StatsBase.norm
+
+import scala.reflect.runtime.{universe => ru}
+
+/**
+  * Defines a base trait for statistical models. This serves as a foundation or marker trait for components within the
+  * statistics package and can be extended by specific statistical entities.
+  */
+trait StatsBase extends Product {
+  def toMap: Map[String, Any] = StatsBase.productToMap(this)
+
+}
+
+object StatsBase {
+
+  private def norm(v: Any): Any = v match {
+    case s: StatsBase => s.toMap
+    case o: Option[_] => o.fold(null: Any)(norm)
+    case seq: Seq[_]  => seq.map(norm)
+    case m: Map[_, _] =>
+      m.asInstanceOf[Map[Any, Any]].map { case (k, v2) => k.toString -> norm(v2) }
+    case p: Product if !p.isInstanceOf[StatsBase] =>
+      p.toString
+    case other => other
+  }
+
+  private def paramNames(p: Product): List[String] = {
+    val mirror = ru.runtimeMirror(p.getClass.getClassLoader)
+    val sym = mirror.classSymbol(p.getClass)
+    val ctor = sym.primaryConstructor.asMethod
+    ctor.paramLists.flatten.map(_.name.decodedName.toString)
+  }
+
+  private def productToMap(p: Product): Map[String, Any] = {
+    val names = paramNames(p)
+    val values = p.productIterator.toList
+    names.zip(values).map { case (n, v) => n -> norm(v) }.toMap
+  }
+
+  def toJson(v: Any): String = v match {
+    case null         => "null"
+    case m: Map[_, _] =>
+      m.asInstanceOf[Map[String, Any]]
+        .map { case (k, v2) => "\"" + escape(k) + "\":" + toJson(v2) }
+        .mkString("{", ",", "}")
+    case seq: Seq[_] => seq.map(toJson).mkString("[", ",", "]")
+    case s: String   => "\"" + escape(s) + "\""
+    case b: Boolean  => b.toString
+    case n: Int      => n.toString
+    case n: Long     => n.toString
+    case n: Double   =>
+      if (n.isNaN || n.isInfinity) "\"" + n.toString + "\"" else n.toString
+    case other => "\"" + escape(other.toString) + "\""
+  }
+
+  private def escape(s: String): String =
+    s.flatMap {
+      case '"'              => "\\\""
+      case '\\'             => "\\\\"
+      case '\b'             => "\\b"
+      case '\f'             => "\\f"
+      case '\n'             => "\\n"
+      case '\r'             => "\\r"
+      case '\t'             => "\\t"
+      case c if c.isControl => "\\u%04x".format(c.toInt)
+      case c                => c.toString
+    }
+
+  def flatten(map: Map[String, Any], prefix: String = ""): Map[String, Any] =
+    map.flatMap {
+      case (k, v: Map[_, _]) =>
+        flatten(v.asInstanceOf[Map[String, Any]], if (prefix.isEmpty) k else s"$prefix.$k")
+      case (k, v) =>
+        Map((if (prefix.isEmpty) k else s"$prefix.$k") -> v)
+    }
+
+}

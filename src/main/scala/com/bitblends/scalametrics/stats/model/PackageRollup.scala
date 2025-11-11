@@ -69,6 +69,7 @@ case class PackageRollup(
     totalFunctions: Int,
     publicFunctions: Int,
     privateFunctions: Int,
+
     // Inline and implicit/given metrics
     inlineMethods: Int,
     inlineVals: Int,
@@ -81,6 +82,7 @@ case class PackageRollup(
     // given
     givenInstances: Int,
     givenConversions: Int,
+
     // Pattern matching metrics
     pmMatches: Int,
     pmCases: Int,
@@ -88,6 +90,7 @@ case class PackageRollup(
     pmWildcards: Int,
     pmMaxNesting: Int,
     pmNestedMatches: Int,
+
     // Branch density metrics
     bdBranches: Int,
     bdIfCount: Int,
@@ -97,15 +100,15 @@ case class PackageRollup(
     bdBoolOpsCount: Int,
     bdDensityPer100: Double,
     bdBoolOpsPer100: Double
-):
+) extends StatsBase {
 
   /**
-    * Formats and returns a detailed metrics summary of the package in a readable string representation. The output
-    * includes information about the number of functions, inline and implicit usages, pattern matching metrics, and
-    * branch density metrics.
+    * Returns a formatted string containing various statistical metrics and summaries related to a package. The output
+    * includes details about total functions, inline usage, implicit usage, given instances, pattern matching metrics,
+    * and branch density metrics.
     *
     * @return
-    *   A formatted string containing the summarized metrics and statistics of the package.
+    *   A formatted string representing the package statistics and metrics, organized in a human-readable structure.
     */
   def prettify: String = {
     f"""Package: $name
@@ -148,25 +151,4 @@ case class PackageRollup(
        |""".stripMargin
   }
 
-  /**
-    * Converts the product elements of the case class into a map representation where the keys are the element names and
-    * the values are their corresponding string representations. If an element is an `Option`, `None` is converted to an
-    * empty string and `Some` is converted to the contained value as a string. Sequences are joined into a
-    * comma-separated string.
-    *
-    * @return
-    *   A map with element names as keys and their string representations as values.
-    */
-  def toMap: Map[String, String] = {
-    this.productElementNames
-      .zip(this.productIterator)
-      .map { case (name, value) =>
-        name -> (value match {
-          case Some(v)     => v.toString
-          case None        => ""
-          case seq: Seq[_] => seq.mkString(",")
-          case v           => v.toString
-        })
-      }
-      .toMap
-  }
+}
