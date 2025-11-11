@@ -56,7 +56,7 @@ ScalaMetrics is a powerful static analysis library for Scala projects. It provid
 - **Automatic Dialect Detection**: Automatically detects Scala dialects for accurate parsing using a combination of
    heuristics and statistical methods
 
-Please refer to the [Getting Started Guide][getting-started] guide for installation instructions and quick start examples.
+Please refer to the [Getting Started][getting-started] guide for installation instructions and quick start examples.
 You can also explore the [Metrics Overview][measuring-what-matters-a-gentle-introduction] to learn about the various metrics provided by 
 ScalaMetrics and see how they can help improve your code quality.
 
