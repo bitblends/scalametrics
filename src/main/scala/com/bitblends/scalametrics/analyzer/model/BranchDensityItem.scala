@@ -5,6 +5,8 @@
 
 package com.bitblends.scalametrics.analyzer.model
 
+import com.bitblends.scalametrics.metrics.model.BranchDensityMetrics
+
 import scala.meta.Position
 
 /**

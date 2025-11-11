@@ -8,7 +8,13 @@ package com.bitblends.scalametrics.analyzer
 import com.bitblends.scalametrics.analyzer.TypeInfer._
 import com.bitblends.scalametrics.analyzer.model._
 import com.bitblends.scalametrics.metrics._
-import com.bitblends.scalametrics.metrics.model.MemberMetrics
+import com.bitblends.scalametrics.metrics.model.{
+  MemberMetrics,
+  Metadata,
+  PatternMatchingMetrics,
+  BranchDensityMetrics,
+  InlineAndImplicitMetrics => InlineImplicitsMetrics
+}
 import com.bitblends.scalametrics.utils.Util._
 
 import scala.annotation.tailrec
@@ -200,46 +206,59 @@ object MemberAnalyzer extends Analyzer {
       val (cc, nestingDepth, pm, bd) =
         rhsTerm
           .map(analyzeTerm)
-          .getOrElse((1, 0, PatternMatchingMetrics(0, 0, 0, 0, 0, 0, Nil), BranchDensityMetrics(0, 0, 0, 0, 0, 0, 0)))
+          .getOrElse((1, 0, PatternMatchingMetrics(), BranchDensityMetrics()))
       val fullName = {
         val q = s.qualifiedPrefix
         if (q.isEmpty) name else s"$q.$name"
       }
 
       MemberMetrics(
-        fileId = fid,
-        name = fullName,
-        memberType = kind,
-        signature = signature,
-        accessModifier = access,
-        linesOfCode = loc,
-        hasScaladoc = hasScaladoc,
-        isDeprecated = deprecated,
+        metadata = Metadata(
+          fileId = fid,
+          name = fullName,
+          signature = signature,
+          accessModifier = access,
+          linesOfCode = loc,
+          isDeprecated = deprecated,
+          isNested = false,
+          declarationType = kind
+        ),
         cComplexity = cc,
         nestingDepth = nestingDepth,
-        hasInlineModifier = isInline,
-        isGivenInstance = givenFlags._1,
-        isGivenConversion = givenFlags._2,
-        isImplicit = isImplicit,
-        isAbstract = abstractMetrics.exists(_.inferredReturnType.nonEmpty),
-        hasExplicitReturnType = abstractMetrics.exists(_.hasExplicitReturnType),
-        inferredReturnType = abstractMetrics.flatMap(_.inferredReturnType),
-        pmMatches = pm.matches,
-        pmCases = pm.cases,
-        pmGuards = pm.guards,
-        pmWildcards = pm.wildcards,
-        pmMaxNesting = pm.maxMatchNesting,
-        pmNestedMatches = pm.nestedMatches,
-        pmAvgCasesPerMatch = pm.avgCasesPerMatch,
-        bdBranches = bd.branches,
-        bdIfCount = bd.ifCount,
-        bdCaseCount = bd.caseCount,
-        bdLoopCount = bd.loopCount,
-        bdCatchCaseCount = bd.catchCaseCount,
-        bdBoolOpsCount = bd.boolOpsCount,
-        bdDensityPer100 = bd.densityPer100,
-        bdBoolOpsPer100 = bd.boolOpsPer100
+        hasScaladoc = hasScaladoc,
+        inlineAndImplicitMetrics = InlineImplicitsMetrics(
+          hasInlineModifier = isInline,
+          isImplicitConversion = false,
+          isImplicit = isImplicit,
+          isAbstract = abstractMetrics.exists(_.inferredReturnType.nonEmpty),
+          hasExplicitReturnType = abstractMetrics.exists(_.hasExplicitReturnType),
+          inferredReturnType = abstractMetrics.flatMap(_.inferredReturnType),
+          isGivenInstance = Some(givenFlags._1),
+          isGivenConversion = Some(givenFlags._2)
+        ),
+        patternMatchingMetrics = PatternMatchingMetrics(
+          matches = pm.matches,
+          cases = pm.cases,
+          guards = pm.guards,
+          wildcards = pm.wildcards,
+          maxNesting = pm.maxNesting,
+          nestedMatches = pm.nestedMatches,
+          avgCasesPerMatch = if (pm.matches == 0) 0.0 else pm.cases.toDouble / pm.matches,
+          matchCases = Nil
+        ),
+        branchDensityMetrics = BranchDensityMetrics(
+          loc = loc,
+          branches = bd.branches,
+          ifCount = bd.ifCount,
+          caseCount = bd.caseCount,
+          loopCount = bd.loopCount,
+          catchCaseCount = bd.catchCaseCount,
+          boolOpsCount = bd.boolOpsCount,
+          densityPer100 = if (loc == 0) 0.0 else 100.0 * bd.branches.toDouble / loc,
+          boolOpsPer100 = if (loc == 0) 0.0 else 100.0 * bd.boolOpsCount.toDouble / loc
+        )
       )
+
     }
 
     /**

@@ -5,7 +5,7 @@
 
 package com.bitblends.scalametrics.analyzer
 
-import com.bitblends.scalametrics.metrics.model.{FileMetrics, MemberMetrics, MethodMetrics}
+import com.bitblends.scalametrics.metrics.model.{FileMetadata, MemberMetrics, MethodMetrics}
 
 import java.io.File
 
@@ -35,7 +35,7 @@ final case class AnalysisCtx(
     tree: meta.Source,
     projectId: Option[String] = None,
     fileId: Option[String] = None, // set by the first analyzer in the pipeline
-    fileMetrics: Option[FileMetrics] = None, // set by the first analyzer in the pipeline
+    fileMetrics: Option[FileMetadata] = None, // set by the first analyzer in the pipeline
     methods: Vector[MethodMetrics] = Vector.empty, // appended by method analyzer(s)
     members: Vector[MemberMetrics] = Vector.empty // appended by member analyzer(s)
 ) {
@@ -49,7 +49,7 @@ final case class AnalysisCtx(
     *   A new AnalysisCtx instance with the updated file identifier and metrics set to the values provided in the file
     *   metrics object.
     */
-  def withFile(fm: FileMetrics): AnalysisCtx = copy(
+  def withFile(fm: FileMetadata): AnalysisCtx = copy(
     fileId = Some(fm.fileId),
     fileMetrics = Some(fm)
   )

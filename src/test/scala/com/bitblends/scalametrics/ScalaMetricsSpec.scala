@@ -60,10 +60,10 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     val fileResult = result.fileMetrics.head
 
     // Verify file-level metrics
-    fileResult.fileMetrics.projectId shouldBe Some("test-project")
-    fileResult.fileMetrics.packageName shouldBe "com.example"
-    fileResult.fileMetrics.linesOfCode shouldBe 6
-    fileResult.fileMetrics.file shouldBe testFile
+    fileResult.fileMetadata.projectId shouldBe Some("test-project")
+    fileResult.fileMetadata.packageName shouldBe "com.example"
+    fileResult.fileMetadata.linesOfCode shouldBe 6
+    fileResult.fileMetadata.file shouldBe testFile
 
     // Verify method metrics were captured (should include main method)
     fileResult.methodMetrics should not be empty
@@ -118,7 +118,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result.fileMetrics should have size 2
 
     // Verify different packages were captured
-    val packages = result.fileMetrics.map(_.fileMetrics.packageName).toSet
+    val packages = result.fileMetrics.map(_.fileMetadata.packageName).toSet
     packages should contain("com.example")
     packages should contain("com.example.utils")
 
@@ -188,7 +188,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     val fileResult = result.fileMetrics.head
 
     // File metrics should be present (FileAnalyzer ran)
-    fileResult.fileMetrics should not be null
+    fileResult.fileMetadata should not be null
 
     // Method metrics should be present (MethodAnalyzer ran)
     fileResult.methodMetrics should not be empty
@@ -226,8 +226,8 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     val fileResult = result.fileMetrics.head
 
     // File metrics should still be present
-    fileResult.fileMetrics.packageName shouldBe "com.example"
-    fileResult.fileMetrics.linesOfCode shouldBe 2
+    fileResult.fileMetadata.packageName shouldBe "com.example"
+    fileResult.fileMetadata.linesOfCode shouldBe 2
 
     testFile.delete()
   }
@@ -266,7 +266,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     )
 
     result.fileMetrics should have size 1
-    result.fileMetrics.head.fileMetrics.packageName shouldBe "com.example"
+    result.fileMetrics.head.fileMetadata.packageName shouldBe "com.example"
 
     testFile.delete()
   }
@@ -318,7 +318,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     result.fileMetrics should have size 3
 
-    val packages = result.fileMetrics.map(_.fileMetrics.packageName).toSet
+    val packages = result.fileMetrics.map(_.fileMetadata.packageName).toSet
     packages shouldBe Set("com.example.a", "com.example.b", "com.example.c.nested")
 
     file1.delete()
@@ -491,7 +491,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     // Should capture methods and constructor parameters
     fileResult.methodMetrics should not be empty
-    fileResult.fileMetrics.packageName shouldBe "com.example"
+    fileResult.fileMetadata.packageName shouldBe "com.example"
 
     testFile.delete()
   }
@@ -609,10 +609,10 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     val fileResult = result.get
 
     // Verify file metrics
-    fileResult.fileMetrics.file shouldBe testFile
-    fileResult.fileMetrics.packageName shouldBe "com.example"
-    fileResult.fileMetrics.linesOfCode shouldBe 5
-    fileResult.fileMetrics.projectId shouldBe None // No project context
+    fileResult.fileMetadata.file shouldBe testFile
+    fileResult.fileMetadata.packageName shouldBe "com.example"
+    fileResult.fileMetadata.linesOfCode shouldBe 5
+    fileResult.fileMetadata.projectId shouldBe None // No project context
 
     // Verify method metrics were captured
     fileResult.methodMetrics.size shouldBe 2
@@ -640,8 +640,8 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example"
-    fileResult.fileMetrics.linesOfCode shouldBe 7
+    fileResult.fileMetadata.packageName shouldBe "com.example"
+    fileResult.fileMetadata.linesOfCode shouldBe 7
 
     // Should capture method and implicit member
     fileResult.methodMetrics should not be empty
@@ -671,8 +671,8 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example"
-    fileResult.fileMetrics.linesOfCode shouldBe 8
+    fileResult.fileMetadata.packageName shouldBe "com.example"
+    fileResult.fileMetadata.linesOfCode shouldBe 8
 
     // Should capture the describe method
     fileResult.methodMetrics should not be empty
@@ -716,8 +716,8 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "<default>"
-    fileResult.fileMetrics.linesOfCode shouldBe 4
+    fileResult.fileMetadata.packageName shouldBe "<default>"
+    fileResult.fileMetadata.linesOfCode shouldBe 4
 
     testFile.delete()
   }
@@ -738,7 +738,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example.deep.nested.structure"
+    fileResult.fileMetadata.packageName shouldBe "com.example.deep.nested.structure"
     fileResult.methodMetrics should not be empty
 
     testFile.delete()
@@ -822,8 +822,8 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example"
-    fileResult.fileMetrics.linesOfCode shouldBe 1
+    fileResult.fileMetadata.packageName shouldBe "com.example"
+    fileResult.fileMetadata.linesOfCode shouldBe 1
     fileResult.methodMetrics shouldBe empty
     fileResult.memberMetrics shouldBe empty
 
@@ -850,7 +850,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example"
+    fileResult.fileMetadata.packageName shouldBe "com.example"
     // Should capture at least the greet and isAdult methods
     fileResult.methodMetrics.size should be >= 2
 
@@ -929,7 +929,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example"
+    fileResult.fileMetadata.packageName shouldBe "com.example"
     // Should capture implicit conversion and implicit class method
     fileResult.methodMetrics.size should be >= 2
 
@@ -1055,7 +1055,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example"
+    fileResult.fileMetadata.packageName shouldBe "com.example"
     fileResult.methodMetrics should not be empty
 
     testFile.delete()
@@ -1105,7 +1105,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName shouldBe "com.example"
+    fileResult.fileMetadata.packageName shouldBe "com.example"
     // Should capture extension methods
     fileResult.methodMetrics.size should be >= 3
 
@@ -1132,7 +1132,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     result shouldBe defined
     val fileResult = result.get
 
-    fileResult.fileMetrics.packageName should include("com.example")
+    fileResult.fileMetadata.packageName should include("com.example")
     fileResult.methodMetrics should not be empty
     fileResult.memberMetrics should not be empty
 
@@ -1177,7 +1177,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     // Should only process the valid file
     result.fileMetrics.size should be <= 2
     // At least the valid file should be processed
-    result.fileMetrics.exists(_.fileMetrics.file == validFile) shouldBe true
+    result.fileMetrics.exists(_.fileMetadata.file == validFile) shouldBe true
 
     validFile.delete()
     invalidFile.delete()
@@ -1217,9 +1217,9 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     )
 
     // Verify project header
-    result.header.name shouldBe "Single File Stats"
-    result.header.version shouldBe "1.0.0"
-    result.header.scalaVersion shouldBe "2.13.17"
+    result.metadata.name shouldBe "Single File Stats"
+    result.metadata.version shouldBe "1.0.0"
+    result.metadata.scalaVersion shouldBe "2.13.17"
 
     // Verify project rollup statistics
     val rollup = result.projectRollup
@@ -1317,12 +1317,12 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     rollup.totalSymbols should be >= 5 // Methods + cache member + implicit val
 
     // Verify branch density metrics
-    rollup.bdIfCount should be >= 2 // if statements in getUser and capitalize
-    rollup.bdCaseCount should be >= 2 // pattern match cases in findById
-    rollup.bdBoolOpsCount should be >= 1 // && in saveUser
+    rollup.branchDensityStats.ifCount should be >= 2 // if statements in getUser and capitalize
+    rollup.branchDensityStats.caseCount should be >= 2 // pattern match cases in findById
+    rollup.branchDensityStats.boolOpsCount should be >= 1 // && in saveUser
 
     // Verify implicit metrics
-    rollup.implicitVals shouldBe 0 // implicit val in RichString
+    rollup.inlineAndImplicitStats.implicitVals shouldBe 0 // implicit val in RichString
 
     // Verify cyclomatic complexity
     rollup.avgCyclomaticComplexity should be > 0.0
@@ -1359,7 +1359,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     )
 
     // Verify empty project statistics
-    result.header.name shouldBe "Empty Project Stats"
+    result.metadata.name shouldBe "Empty Project Stats"
     result.projectRollup.totalFiles shouldBe 0
     result.projectRollup.totalLoc shouldBe 0
     result.projectRollup.totalFunctions shouldBe 0
@@ -1508,14 +1508,14 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     rollup.maxNestingDepth should be >= 3 // deeplyNested method
 
     // Verify pattern matching metrics
-    rollup.pmMatches should be >= 2 // Two match expressions in highComplexity
-    rollup.pmCases should be >= 5 // Total cases across all matches
-    rollup.pmGuards should be >= 1 // Guard in the first case
-    rollup.pmMaxNesting should be >= 1 // Nested match in highComplexity
+    rollup.patternMatchingStats.matches should be >= 2 // Two match expressions in highComplexity
+    rollup.patternMatchingStats.cases should be >= 5 // Total cases across all matches
+    rollup.patternMatchingStats.guards should be >= 1 // Guard in the first case
+    rollup.patternMatchingStats.maxNesting should be >= 1 // Nested match in highComplexity
 
     // Verify branch metrics
-    rollup.bdIfCount should be >= 6 // Multiple if statements
-    rollup.bdCaseCount should be >= 5 // Pattern match cases
+    rollup.branchDensityStats.ifCount should be >= 6 // Multiple if statements
+    rollup.branchDensityStats.caseCount should be >= 5 // Pattern match cases
 
     testFile.delete()
   }
@@ -1602,9 +1602,9 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     // Verify Scala 3 specific features are captured
     rollup.totalFunctions should be >= 3 // extension methods + compare
-    rollup.givenInstances should be >= 1 // given Ordering instance
-    rollup.pmMatches should be >= 1 // Pattern match in describe
-    rollup.pmCases should be >= 3 // Three cases in describe
+    rollup.inlineAndImplicitStats.givenInstances should be >= 1 // given Ordering instance
+    rollup.patternMatchingStats.matches should be >= 1 // Pattern match in describe
+    rollup.patternMatchingStats.cases should be >= 3 // Three cases in describe
 
     testFile.delete()
   }
@@ -1648,13 +1648,13 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     // Total defs/vals/vars: 6 (4 methods + 2 vals)
     rollup.totalDefsValsVars shouldBe 6
-    rollup.explicitDefsValsVars shouldBe 3 // explicit, explicitVal, privateExplicit
-    rollup.returnTypeExplicitness shouldBe 50.0 // 3 out of 6 are explicit
+    rollup.inlineAndImplicitStats.explicitDefsValsVars shouldBe 3 // explicit, explicitVal, privateExplicit
+    rollup.inlineAndImplicitStats.returnTypeExplicitness shouldBe 50.0 // 3 out of 6 are explicit
 
     // Public defs/vals/vars: 4 (2 public methods + 2 public vals)
     rollup.totalPublicDefsValsVars shouldBe 4
-    rollup.explicitPublicDefsValsVars shouldBe 2 // explicit, explicitVal
-    rollup.publicReturnTypeExplicitness shouldBe 50.0 // 2 out of 4 are explicit
+    rollup.inlineAndImplicitStats.explicitPublicDefsValsVars shouldBe 2 // explicit, explicitVal
+    rollup.inlineAndImplicitStats.publicReturnTypeExplicitness shouldBe 50.0 // 2 out of 4 are explicit
 
     testFile.delete()
   }
@@ -1737,9 +1737,9 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     val rollup = result.projectRollup
 
-    rollup.inlineMethods should be >= 1 // inlineMethod
-    rollup.inlineVals should be >= 1 // inlineVal
-    rollup.inlineParams should be >= 1 // inline parameter in withInlineParam
+    rollup.inlineAndImplicitStats.inlineMethods should be >= 1 // inlineMethod
+    rollup.inlineAndImplicitStats.inlineVals should be >= 1 // inlineVal
+    rollup.inlineAndImplicitStats.inlineParams should be >= 1 // inline parameter in withInlineParam
 
     testFile.delete()
   }
@@ -1779,9 +1779,9 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
 
     val rollup = result.projectRollup
 
-    rollup.implicitConversions shouldBe 2 // stringToInt and intToString
-    rollup.implicitVals shouldBe 1 // defaultTimeout
-    rollup.implicitVars shouldBe 1 // mutableImplicit
+    rollup.inlineAndImplicitStats.implicitConversions shouldBe 2 // stringToInt and intToString
+    rollup.inlineAndImplicitStats.implicitVals shouldBe 1 // defaultTimeout
+    rollup.inlineAndImplicitStats.implicitVars shouldBe 1 // mutableImplicit
 
     testFile.delete()
   }
@@ -2084,8 +2084,8 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     )
 
     // Verify cross-version information is preserved
-    result.header.scalaVersion shouldBe "2.13.17"
-    result.header.crossScalaVersions shouldBe Seq("2.12.20", "2.13.17", "3.3.6")
+    result.metadata.scalaVersion shouldBe "2.13.17"
+    result.metadata.crossScalaVersions shouldBe Seq("2.12.20", "2.13.17", "3.3.6")
 
     testFile.delete()
   }
@@ -2126,7 +2126,7 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     )
 
     // Verify all metadata is preserved in the header
-    val header = result.header
+    val header = result.metadata
     header.name shouldBe "Full Metadata Stats"
     header.version shouldBe "2.5.0"
     header.scalaVersion shouldBe "2.13.17"

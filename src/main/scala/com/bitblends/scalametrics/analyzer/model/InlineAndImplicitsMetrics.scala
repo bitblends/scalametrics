@@ -40,7 +40,7 @@ package com.bitblends.scalametrics.analyzer.model
   * @param givenConversions
   *   Total count of given conversions (Scala 3)
   */
-case class InlineAndImplicitsMetrics(
+case class InlineAndImplicitsMetrics200000000(
     inlineMethods: Int,
     inlineVals: Int,
     inlineVars: Int,

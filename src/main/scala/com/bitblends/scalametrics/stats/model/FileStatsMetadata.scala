@@ -24,7 +24,7 @@ package com.bitblends.scalametrics.stats.model
   * @param fileSizeBytes
   *   Size of the file in bytes.
   */
-case class FileStatsHeader(
+case class FileStatsMetadata(
     projectId: String,
     fileId: String,
     fileName: String,
@@ -32,35 +32,4 @@ case class FileStatsHeader(
     packageName: String,
     linesOfCode: Int,
     fileSizeBytes: Long
-) {
-
-  /**
-    * Converts the properties of the case class into a Map where the keys are the field names and the values are their
-    * corresponding string representations.
-    *
-    * @return
-    *   A Map containing the field names as keys and their corresponding values as string representations.
-    */
-  def toMap: Map[String, String] = {
-    val fieldNames = List(
-      "projectId",
-      "fileId",
-      "fileName",
-      "filePath",
-      "packageName",
-      "linesOfCode",
-      "fileSizeBytes"
-    )
-    fieldNames
-      .zip(this.productIterator.toList)
-      .map { case (name, value) =>
-        name -> (value match {
-          case Some(v)     => v.toString
-          case None        => ""
-          case seq: Seq[_] => seq.mkString(",")
-          case v           => v.toString
-        })
-      }
-      .toMap
-  }
-}
+) {}

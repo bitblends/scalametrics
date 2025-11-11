@@ -4,6 +4,12 @@
  */
 
 package com.bitblends.scalametrics.stats.model
+import com.bitblends.scalametrics.metrics.model.{
+  BranchDensityMetrics,
+  InlineAndImplicitMetrics,
+  Metadata,
+  PatternMatchingMetrics
+}
 
 /**
   * Represents the base properties and metrics of a member within a codebase.
@@ -23,37 +29,12 @@ package com.bitblends.scalametrics.stats.model
 trait MemberBase {
 
   /**
-    * Represents the unique identifier for the source file associated with this code member.
+    * Represents the metadata associated with a symbol or declaration within this instance.
     *
-    * This identifier helps associate a codebase member with its corresponding file, enabling easier tracing,
-    * organization, and analysis of source files within the project.
+    * This property contains an instance of the `Metadata` case class, providing detailed information about the symbol's
+    * structural and behavioral characteristics, as well as accessibility, nesting, and other related properties.
     */
-  val fileId: String
-
-  /**
-    * The name of the codebase member.
-    *
-    * Represents the identifier used to label the member, providing clarity and context within the codebase. The `name`
-    * typically corresponds to the user-defined name of a class, trait, method, or other similar constructs.
-    */
-  val name: String
-
-  /**
-    * Represents the member's defining code signature as a string.
-    */
-  val signature: String
-
-  /**
-    * Represents the access modifier of a member. Provides information about the visibility level or scope of the
-    * member.
-    */
-  val accessModifier: String
-
-  /**
-    * Represents the number of lines of code associated with a particular member. This value provides insight into the
-    * size or complexity of the member in terms of its implementation.
-    */
-  val linesOfCode: Int
+  val metadata: Metadata
 
   /**
     * Indicates whether the member has Scaladoc associated with it.
@@ -61,121 +42,40 @@ trait MemberBase {
   val hasScaladoc: Boolean
 
   /**
-    * Indicates whether the associated member is marked as deprecated.
-    */
-  val isDeprecated: Boolean
-
-  // Cyclomatic complexity ------------------------------------------
-  /**
     * Represents the cyclomatic complexity of a member. Cyclomatic complexity is a software metric used to indicate the
     * complexity of a program. It is calculated based on the number of linearly independent paths through the program's
     * source code.
     */
   val cComplexity: Int
 
-  // Nesting dept ------------------------------------------
   /**
     * Represents the maximum level of nesting within a member, such as nested blocks, loops, or conditional structures.
     */
   val nestingDepth: Int
 
-  // Inline ------------------------------------------
   /**
-    * Indicates whether the member has the `inline` modifier.
-    */
-  val hasInlineModifier: Boolean
-
-  // Pattern matching metrics ------------------------------------------
-  /**
-    * Represents the number of pattern-matching constructs within the member.
-    */
-  val pmMatches: Int
-
-  /**
-    * Represents the number of pattern match cases in a given entity.
-    */
-  val pmCases: Int
-
-  /**
-    * Represents the number of pattern matching guards associated with the member.
-    */
-  val pmGuards: Int
-
-  /**
-    * Represents the number of pattern matching wildcards identified in the corresponding member.
-    */
-  val pmWildcards: Int
-
-  /**
-    * Represents the maximum nesting depth of pattern matches within the member. Useful for analyzing the complexity of
-    * pattern matching logic.
-    */
-  val pmMaxNesting: Int
-
-  /**
-    * Represents the total count of pattern matches within nested constructs in the source code analyzed for this
-    * member. The value is an aggregated metric specific to the evaluated context.
-    */
-  val pmNestedMatches: Int
-
-  /**
-    * Represents the average number of cases per match in pattern matching constructs within the member.
-    */
-  val pmAvgCasesPerMatch: Double
-
-  // Branch density metric ------------------------------------------
-  /**
-    * Represents the number of branches in the block or decision structure of the associated member. This metric is
-    * typically used in complexity analysis to indicate how many branching points exist within the code for the member.
-    */
-  val bdBranches: Int
-
-  /**
-    * Represents the count of `if` branches present within the member.
-    */
-  val bdIfCount: Int
-
-  /**
-    * Represents the total number of case statements analyzed or counted in the given context. Typically used as a
-    * metric to track or measure code complexity related to pattern matching structures.
-    */
-  val bdCaseCount: Int
-
-  /**
-    * Represents the count of loop constructs identified in the member analysis.
-    */
-  val bdLoopCount: Int
-
-  /**
-    * Represents the count of catch cases found within a block of code associated with this member. This field is used
-    * to analyze the structural complexity in terms of error-handling logic.
-    */
-  val bdCatchCaseCount: Int
-
-  /**
-    * Represents the number of boolean operations found in the analyzed member. This value is used as a metric to
-    * evaluate logical complexity within the member's implementation.
-    */
-  val bdBoolOpsCount: Int
-
-  /**
-    * Represents the branch density percentage multiplied by 100. This metric gives an indication of the proportion of
-    * branching logic present in the code, relative to the evaluated lines of code.
-    */
-  val bdDensityPer100: Double
-
-  /**
-    * Represents the count of boolean operations per 100 lines of code in the context of the MemberBase.
-    */
-  val bdBoolOpsPer100: Double
-  // ------------------------------------------------------------------------------------
-
-  /**
-    * Converts the current instance into a `Map[String, String]` representation, where the keys and values represent the
-    * properties of the instance.
+    * Encapsulates metrics related to the usage of inline and implicit constructs within a member.
     *
-    * @return
-    *   A map containing string representations of the instance's key-value pairs.
+    * The `InlineAndImplicitStats` field provides detailed statistical data on aspects such as inline modifiers,
+    * inline-specific parameters, implicit conversions, abstractness of members, return type information, and usage of
+    * `given` constructs specific to Scala 3. It offers insights into the characteristics and behavior of the member in
+    * relation to these constructs within the codebase.
     */
-  def toMap: Map[String, String]
+  val inlineAndImplicitStats: InlineAndImplicitMetrics
+
+  /**
+    * Holds metrics related to the usage and complexity of pattern matching constructs within the analyzed member.
+    *
+    * The `patternMatchingMetrics` field provides detailed insights such as the total number of match expressions,
+    * cases, guards, wildcards, and additional properties like nesting depth and case distribution.
+    */
+  val patternMatchingMetrics: PatternMatchingMetrics
+
+  /**
+    * Represents the branch density metrics associated with a specific code member. The `BranchDensityMetrics` instance
+    * provides detailed insights into various branching constructs, their frequency, and density, which helps analyze
+    * the complexity and branching logic of the code.
+    */
+  val branchDensityMetrics: BranchDensityMetrics
+
 }

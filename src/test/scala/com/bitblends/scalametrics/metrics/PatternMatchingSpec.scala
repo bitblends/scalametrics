@@ -31,7 +31,7 @@ class PatternMatchingSpec extends AnyFlatSpec with Matchers {
     metrics.cases shouldBe 0
     metrics.guards shouldBe 0
     metrics.wildcards shouldBe 0
-    metrics.maxMatchNesting shouldBe 0
+    metrics.maxNesting shouldBe 0
     metrics.nestedMatches shouldBe 0
   }
 
@@ -46,7 +46,7 @@ class PatternMatchingSpec extends AnyFlatSpec with Matchers {
     metrics.matches shouldBe 1
     metrics.cases shouldBe 3
     metrics.wildcards shouldBe 1
-    metrics.maxMatchNesting shouldBe 1
+    metrics.maxNesting shouldBe 1
   }
 
   it should "count match with two cases" in {
@@ -184,7 +184,7 @@ class PatternMatchingSpec extends AnyFlatSpec with Matchers {
 
     metrics.matches shouldBe 2
     metrics.cases shouldBe 6 // 3 outer + 3 inner
-    metrics.maxMatchNesting shouldBe 2
+    metrics.maxNesting shouldBe 2
     metrics.nestedMatches shouldBe 1 // 1 inner match
     metrics.wildcards shouldBe 2
   }
@@ -203,7 +203,7 @@ class PatternMatchingSpec extends AnyFlatSpec with Matchers {
     val metrics = PatternMatching.compute(term)
 
     metrics.matches shouldBe 3
-    metrics.maxMatchNesting shouldBe 3
+    metrics.maxNesting shouldBe 3
     metrics.nestedMatches shouldBe 2 // 2 inner matches (at depths 2 and 3)
   }
 
@@ -224,7 +224,7 @@ class PatternMatchingSpec extends AnyFlatSpec with Matchers {
 
     metrics.matches shouldBe 2
     metrics.cases shouldBe 5 // 2 + 3
-    metrics.maxMatchNesting shouldBe 1 // not nested within each other
+    metrics.maxNesting shouldBe 1 // not nested within each other
     metrics.nestedMatches shouldBe 0 // siblings, not nested
   }
 
@@ -415,7 +415,7 @@ class PatternMatchingSpec extends AnyFlatSpec with Matchers {
     metrics.matches shouldBe 2 // outer + inner
     metrics.cases shouldBe 6 // 4 outer + 2 inner
     metrics.guards shouldBe 2 // 2 guards in outer match
-    metrics.maxMatchNesting shouldBe 2
+    metrics.maxNesting shouldBe 2
     metrics.nestedMatches shouldBe 1
     metrics.wildcards shouldBe 1
   }
@@ -486,7 +486,7 @@ class PatternMatchingSpec extends AnyFlatSpec with Matchers {
 
     metrics.matches shouldBe 1
     metrics.cases shouldBe 2
-    metrics.maxMatchNesting shouldBe 1
+    metrics.maxNesting shouldBe 1
   }
 
   it should "handle match nested in loop" in {

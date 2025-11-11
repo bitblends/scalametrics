@@ -35,37 +35,37 @@ object Stats {
 
     val fileStatsList: Vector[FileStats] = projectMetrics.fileMetrics.map(fm => fileStats(fm, projectBaseDir))
     val packageStatsList: Vector[PackageRollup] = fileStatsList
-      .groupBy(_.header.packageName)
+      .groupBy(_.metadata.packageName)
       .map { case (packageName: String, fileStatsInPackage: Vector[FileStats]) =>
-        val packageLoc: Int = fileStatsInPackage.map(_.header.linesOfCode).sum
+        val packageLoc: Int = fileStatsInPackage.map(_.metadata.linesOfCode).sum
         packageStats(packageName, packageLoc, fileStatsInPackage.map(_.fileRollup))
       }
       .toVector
 
     val totalPackages = packageStatsList.size
-    val fileRollupList = fileStatsList.map(_.fileRollup)
-    val methodStatList = fileStatsList.flatMap(_.declarationStats.methodStats)
-    val memberStatList = fileStatsList.flatMap(_.declarationStats.memberStats)
+    val fileRollupList: Seq[FileRollup] = fileStatsList.map(_.fileRollup)
+    val methodStatList = fileStatsList.flatMap(_.methodStats)
+    val memberStatList = fileStatsList.flatMap(_.memberStats)
 
     // Core metrics
     val totalFiles = fileStatsList.size
-    val totalLoc = fileStatsList.map(_.header.linesOfCode).foldLeft(0)(_ + _)
-    val totalFileSizeBytes = fileStatsList.map(_.header.fileSizeBytes).foldLeft(0L)(_ + _)
+    val totalLoc = fileStatsList.map(_.metadata.linesOfCode).foldLeft(0)(_ + _)
+    val totalFileSizeBytes = fileStatsList.map(_.metadata.fileSizeBytes).foldLeft(0L)(_ + _)
     val averageFileSizeBytes = if (totalFiles > 0) totalFileSizeBytes / totalFiles else 0L
 
     // Function metrics
     val totalFunctions = methodStatList.size
-    val totalPublicFunctions = methodStatList.count(_.accessModifier == "public")
-    val totalPrivateFunctions = methodStatList.count(_.accessModifier == "private")
+    val totalPublicFunctions = methodStatList.count(_.metadata.accessModifier == "public")
+    val totalPrivateFunctions = methodStatList.count(_.metadata.accessModifier == "private")
 
     // Symbol metrics
     val allSymbols = methodStatList ++ memberStatList
     val totalSymbols = allSymbols.size
-    val totalPublicSymbols = allSymbols.count(_.accessModifier == "public")
-    val totalPrivateSymbols = allSymbols.count(_.accessModifier == "private")
-    val totalNestedSymbols = allSymbols.count(_.accessModifier == "local")
-    val documentedPublicSymbols = allSymbols.count(s => s.accessModifier == "public" && s.hasScaladoc)
-    val totalDeprecatedSymbols = allSymbols.count(_.isDeprecated)
+    val totalPublicSymbols = allSymbols.count(_.metadata.accessModifier == "public")
+    val totalPrivateSymbols = allSymbols.count(_.metadata.accessModifier == "private")
+    val totalNestedSymbols = allSymbols.count(_.metadata.accessModifier == "local")
+    val documentedPublicSymbols = allSymbols.count(s => s.metadata.accessModifier == "public" && s.hasScaladoc)
+    val totalDeprecatedSymbols = allSymbols.count(_.metadata.isDeprecated)
 
     // Coverage metrics
     val scalaDocCoverage =
@@ -80,8 +80,8 @@ object Stats {
     // Return type explicitness
     val totalDefsValsVars = fileRollupList.map(_.totalDefsValsVars).sum
     val totalPublicDefsValsVars = fileRollupList.map(_.totalPublicDefsValsVars).sum
-    val explicitDefsValsVars = fileRollupList.map(_.explicitDefsValsVars).sum
-    val explicitPublicDefsValsVars = fileRollupList.map(_.explicitPublicDefsValsVars).sum
+    val explicitDefsValsVars = fileRollupList.map(_.inlineAndImplicitStats.explicitDefsValsVars).sum
+    val explicitPublicDefsValsVars = fileRollupList.map(_.inlineAndImplicitStats.explicitPublicDefsValsVars).sum
     val returnTypeExplicitness =
       if (totalDefsValsVars > 0)
         100.0 * explicitDefsValsVars.toDouble / totalDefsValsVars
@@ -92,35 +92,35 @@ object Stats {
       else 0.0
 
     // Inline metrics
-    val inlineMethods = fileRollupList.map(_.inlineMethods).sum
-    val inlineVals = fileRollupList.map(_.inlineVals).sum
-    val inlineVars = fileRollupList.map(_.inlineVars).sum
-    val inlineParams = fileRollupList.map(_.inlineParams).sum
+    val inlineMethods = fileRollupList.map(_.inlineAndImplicitStats.inlineMethods).sum
+    val inlineVals = fileRollupList.map(_.inlineAndImplicitStats.inlineVals).sum
+    val inlineVars = fileRollupList.map(_.inlineAndImplicitStats.inlineVars).sum
+    val inlineParams = fileRollupList.map(_.inlineAndImplicitStats.inlineParams).sum
 
     // Implicit metrics
-    val implicitVals = fileRollupList.map(_.implicitVals).sum
-    val implicitVars = fileRollupList.map(_.implicitVars).sum
-    val implicitConversions = fileRollupList.map(_.implicitConversions).sum
+    val implicitVals = fileRollupList.map(_.inlineAndImplicitStats.implicitVals).sum
+    val implicitVars = fileRollupList.map(_.inlineAndImplicitStats.implicitVars).sum
+    val implicitConversions = fileRollupList.map(_.inlineAndImplicitStats.implicitConversions).sum
 
     // Given metrics
-    val givenInstances = fileRollupList.map(_.givenInstances).sum
-    val givenConversions = fileRollupList.map(_.givenConversions).sum
+    val givenInstances = fileRollupList.map(_.inlineAndImplicitStats.givenInstances).sum
+    val givenConversions = fileRollupList.map(_.inlineAndImplicitStats.givenConversions).sum
 
     // Pattern matching metrics
-    val pmMatches = fileRollupList.map(_.pmMatches).sum
-    val pmCases = fileRollupList.map(_.pmCases).sum
-    val pmGuards = fileRollupList.map(_.pmGuards).sum
-    val pmWildcards = fileRollupList.map(_.pmWildcards).sum
-    val pmMaxNesting = if (fileRollupList.nonEmpty) fileRollupList.map(_.pmMaxNesting).max else 0
-    val pmNestedMatches = fileRollupList.map(_.pmNestedMatches).sum
+    val pmMatches = fileRollupList.map(_.patternMatchingStats.matches).sum
+    val pmCases = fileRollupList.map(_.patternMatchingStats.cases).sum
+    val pmGuards = fileRollupList.map(_.patternMatchingStats.guards).sum
+    val pmWildcards = fileRollupList.map(_.patternMatchingStats.wildcards).sum
+    val pmMaxNesting = if (fileRollupList.nonEmpty) fileRollupList.map(_.patternMatchingStats.maxNesting).max else 0
+    val pmNestedMatches = fileRollupList.map(_.patternMatchingStats.nestedMatches).sum
 
     // Branch density metrics
-    val bdBranches = fileRollupList.map(_.bdBranches).sum
-    val bdIfCount = fileRollupList.map(_.bdIfCount).sum
-    val bdCaseCount = fileRollupList.map(_.bdCaseCount).sum
-    val bdLoopCount = fileRollupList.map(_.bdLoopCount).sum
-    val bdCatchCaseCount = fileRollupList.map(_.bdCatchCaseCount).sum
-    val bdBoolOpsCount = fileRollupList.map(_.bdBoolOpsCount).sum
+    val bdBranches = fileRollupList.map(_.branchDensityStats.branches).sum
+    val bdIfCount = fileRollupList.map(_.branchDensityStats.ifCount).sum
+    val bdCaseCount = fileRollupList.map(_.branchDensityStats.caseCount).sum
+    val bdLoopCount = fileRollupList.map(_.branchDensityStats.loopCount).sum
+    val bdCatchCaseCount = fileRollupList.map(_.branchDensityStats.catchCaseCount).sum
+    val bdBoolOpsCount = fileRollupList.map(_.branchDensityStats.boolOpsCount).sum
     val bdDensityPer100 = if (totalLoc == 0) 0.0 else 100.0 * bdBranches.toDouble / totalLoc
     val bdBoolOpsPer100 = if (totalLoc == 0) 0.0 else 100.0 * bdBoolOpsCount.toDouble / totalLoc
 
@@ -142,8 +142,8 @@ object Stats {
     // Count packages with high complexity (threshold: avg complexity > 10)
     val packagesWithHighComplexity = packageStatsList.count { pkg =>
       val pkgMethods: Vector[MethodStats] = fileStatsList
-        .filter(_.header.packageName == pkg.name)
-        .flatMap(_.declarationStats.methodStats)
+        .filter(_.metadata.packageName == pkg.name)
+        .flatMap(_.methodStats)
       if (pkgMethods.nonEmpty) {
         val avgComplexity = pkgMethods.map(_.cComplexity).sum.toDouble / pkgMethods.size
         avgComplexity > 10.0
@@ -153,13 +153,13 @@ object Stats {
     // Count packages with low documentation (threshold: < 50% coverage)
     val packagesWithLowDocumentation = packageStatsList.count { pkg =>
       val pkgPublicSymbols = fileStatsList
-        .filter(_.header.packageName == pkg.name)
-        .flatMap(f => f.declarationStats.methodStats ++ f.declarationStats.memberStats)
-        .count(_.accessModifier == "public")
+        .filter(_.metadata.packageName == pkg.name)
+        .flatMap(f => f.methodStats ++ f.memberStats)
+        .count(_.metadata.accessModifier == "public")
       val pkgDocumentedSymbols = fileStatsList
-        .filter(_.header.packageName == pkg.name)
-        .flatMap(f => f.declarationStats.methodStats ++ f.declarationStats.memberStats)
-        .count(s => s.accessModifier == "public" && s.hasScaladoc)
+        .filter(_.metadata.packageName == pkg.name)
+        .flatMap(f => f.methodStats ++ f.memberStats)
+        .count(s => s.metadata.accessModifier == "public" && s.hasScaladoc)
       if (pkgPublicSymbols > 0) {
         val coverage = 100.0 * pkgDocumentedSymbols.toDouble / pkgPublicSymbols
         coverage < 50.0
@@ -175,56 +175,68 @@ object Stats {
       totalPrivateFunctions = totalPrivateFunctions,
       averageFileSizeBytes = averageFileSizeBytes,
       totalFileSizeBytes = totalFileSizeBytes,
+
       // Symbol metrics
       totalSymbols = totalSymbols,
       totalPublicSymbols = totalPublicSymbols,
       totalPrivateSymbols = totalPrivateSymbols,
       totalNestedSymbols = totalNestedSymbols,
-      documentedPublicSymbols = documentedPublicSymbols,
-      totalDeprecatedSymbols = totalDeprecatedSymbols,
-      // Coverage metrics
-      scalaDocCoverage = scalaDocCoverage,
-      deprecatedSymbolsDensity = deprecatedSymbolsDensity,
-      // Return type explicitness
       totalDefsValsVars = totalDefsValsVars,
       totalPublicDefsValsVars = totalPublicDefsValsVars,
-      explicitDefsValsVars = explicitDefsValsVars,
-      explicitPublicDefsValsVars = explicitPublicDefsValsVars,
-      returnTypeExplicitness = returnTypeExplicitness,
-      publicReturnTypeExplicitness = publicReturnTypeExplicitness,
-      // Inline metrics
-      inlineMethods = inlineMethods,
-      inlineVals = inlineVals,
-      inlineVars = inlineVars,
-      inlineParams = inlineParams,
-      // Implicit metrics
-      implicitVals = implicitVals,
-      implicitVars = implicitVars,
-      implicitConversions = implicitConversions,
-      // Given metrics
-      givenInstances = givenInstances,
-      givenConversions = givenConversions,
-      // Pattern matching metrics
-      pmMatches = pmMatches,
-      pmCases = pmCases,
-      pmGuards = pmGuards,
-      pmWildcards = pmWildcards,
-      pmMaxNesting = pmMaxNesting,
-      pmNestedMatches = pmNestedMatches,
-      // Branch density metrics
-      bdBranches = bdBranches,
-      bdIfCount = bdIfCount,
-      bdCaseCount = bdCaseCount,
-      bdLoopCount = bdLoopCount,
-      bdCatchCaseCount = bdCatchCaseCount,
-      bdBoolOpsCount = bdBoolOpsCount,
-      bdDensityPer100 = bdDensityPer100,
-      bdBoolOpsPer100 = bdBoolOpsPer100,
+      totalDeprecatedSymbols = totalDeprecatedSymbols,
+      documentedPublicSymbols = documentedPublicSymbols,
+
       // Complexity metrics
       avgCyclomaticComplexity = avgCyclomaticComplexity,
       maxCyclomaticComplexity = maxCyclomaticComplexity,
+
+      // Nesting depth metrics
       avgNestingDepth = avgNestingDepth,
       maxNestingDepth = maxNestingDepth,
+
+      // Coverage metrics
+      scalaDocCoverage = scalaDocCoverage,
+      deprecatedSymbolsDensity = deprecatedSymbolsDensity,
+
+      // inline, implicits and Return type explicitness
+      inlineAndImplicitStats = InlineAndImplicitStats(
+        explicitDefsValsVars = explicitDefsValsVars,
+        explicitPublicDefsValsVars = explicitPublicDefsValsVars,
+        returnTypeExplicitness = returnTypeExplicitness,
+        publicReturnTypeExplicitness = publicReturnTypeExplicitness,
+        inlineMethods = inlineMethods,
+        inlineVals = inlineVals,
+        inlineVars = inlineVars,
+        inlineParams = inlineParams,
+        implicitVals = implicitVals,
+        implicitVars = implicitVars,
+        implicitConversions = implicitConversions,
+        givenInstances = givenInstances,
+        givenConversions = givenConversions
+      ),
+
+      // Pattern matching metrics
+      patternMatchingStats = PatternMatchingStats(
+        matches = pmMatches,
+        cases = pmCases,
+        guards = pmGuards,
+        wildcards = pmWildcards,
+        maxNesting = pmMaxNesting,
+        nestedMatches = pmNestedMatches
+      ),
+
+      // Branch density metrics
+      branchDensityStats = BranchDensityStats(
+        branches = bdBranches,
+        ifCount = bdIfCount,
+        caseCount = bdCaseCount,
+        loopCount = bdLoopCount,
+        catchCaseCount = bdCatchCaseCount,
+        boolOpsCount = bdBoolOpsCount,
+        densityPer100 = bdDensityPer100,
+        boolOpsPer100 = bdBoolOpsPer100
+      ),
+
       // Package-level summary
       totalPackages = totalPackages,
       packagesWithHighComplexity = packagesWithHighComplexity,
@@ -232,7 +244,7 @@ object Stats {
     )
 
     ProjectStats(
-      header = projectMetadata(projectMetrics.projectInfo),
+      metadata = projectMetadata(projectMetrics.projectInfo),
       projectRollup = projectStats,
       packages = packageStatsList.map(pkgStat =>
         Package(
@@ -256,8 +268,8 @@ object Stats {
     * @return
     *   A `ProjectStatsHeader` object that encapsulates the project's metadata in a structured format.
     */
-  private def projectMetadata(projectInfo: ProjectInfo): ProjectStatsHeader = {
-    ProjectStatsHeader(
+  private def projectMetadata(projectInfo: ProjectInfo): ProjectMetadata = {
+    ProjectMetadata(
       name = projectInfo.name,
       version = projectInfo.version,
       scalaVersion = projectInfo.scalaVersion,
@@ -293,14 +305,12 @@ object Stats {
     *   A `FileStats` instance encapsulating the file's computed header data, aggregated rollup metrics, and structured
     *   declaration statistics for methods and members.
     */
-  def fileStats(fileMetricsResult: FileMetricsResult, projectBaseDir: Option[java.io.File] = None): FileStats = {
+  def fileStats(fileMetricsResult: FileMetrics, projectBaseDir: Option[java.io.File] = None): FileStats = {
     FileStats(
-      header = fileStatsHeader(fileMetricsResult, projectBaseDir),
+      metadata = fileStatsHeader(fileMetricsResult, projectBaseDir),
       fileRollup = fileRollup(fileMetricsResult),
-      DeclarationStats(
-        fileMetricsResult.memberMetrics.map(memberStats),
-        fileMetricsResult.methodMetrics.map(methodStats)
-      )
+      memberStats = fileMetricsResult.memberMetrics.map(memberStats),
+      methodStats = fileMetricsResult.methodMetrics.map(methodStats)
     )
   }
 
@@ -320,46 +330,13 @@ object Stats {
     */
   def memberStats(memberMetrics: MemberMetrics): MemberStats = {
     MemberStats(
-      fileId = memberMetrics.fileId,
-      name = memberMetrics.name,
-      memberType = memberMetrics.memberType,
-      signature = memberMetrics.signature,
-      accessModifier = memberMetrics.accessModifier,
-      linesOfCode = memberMetrics.linesOfCode,
-      hasScaladoc = memberMetrics.hasScaladoc,
-      isDeprecated = memberMetrics.isDeprecated,
-      // Cyclomatic complexity
+      metadata = memberMetrics.metadata,
       cComplexity = memberMetrics.cComplexity,
-      // Nesting depth
       nestingDepth = memberMetrics.nestingDepth,
-      // inline
-      hasInlineModifier = memberMetrics.hasInlineModifier,
-      // given
-      isGivenInstance = memberMetrics.isGivenInstance,
-      isGivenConversion = memberMetrics.isGivenConversion,
-      // implicit
-      isImplicit = memberMetrics.isImplicit,
-      // explicitness
-      isAbstract = memberMetrics.isAbstract,
-      hasExplicitReturnType = memberMetrics.hasExplicitReturnType,
-      inferredReturnType = memberMetrics.inferredReturnType,
-      // Pattern matching metrics
-      pmMatches = memberMetrics.pmMatches,
-      pmCases = memberMetrics.pmCases,
-      pmGuards = memberMetrics.pmGuards,
-      pmWildcards = memberMetrics.pmWildcards,
-      pmMaxNesting = memberMetrics.pmMaxNesting,
-      pmNestedMatches = memberMetrics.pmNestedMatches,
-      pmAvgCasesPerMatch = memberMetrics.pmAvgCasesPerMatch,
-      // Branch density metrics
-      bdBranches = memberMetrics.bdBranches,
-      bdIfCount = memberMetrics.bdIfCount,
-      bdCaseCount = memberMetrics.bdCaseCount,
-      bdLoopCount = memberMetrics.bdLoopCount,
-      bdCatchCaseCount = memberMetrics.bdCatchCaseCount,
-      bdBoolOpsCount = memberMetrics.bdBoolOpsCount,
-      bdDensityPer100 = memberMetrics.bdDensityPer100,
-      bdBoolOpsPer100 = memberMetrics.bdBoolOpsPer100
+      hasScaladoc = memberMetrics.hasScaladoc,
+      inlineAndImplicitStats = memberMetrics.inlineAndImplicitMetrics,
+      patternMatchingMetrics = memberMetrics.patternMatchingMetrics,
+      branchDensityMetrics = memberMetrics.branchDensityMetrics
     )
   }
 
@@ -375,55 +352,14 @@ object Stats {
     */
   def methodStats(methodMetrics: MethodMetrics): MethodStats = {
     MethodStats(
-      fileId = methodMetrics.fileId,
-      name = methodMetrics.name,
-      signature = methodMetrics.signature,
-      accessModifier = methodMetrics.accessModifier,
-      linesOfCode = methodMetrics.linesOfCode,
-      isNested = methodMetrics.isNested,
-      hasScaladoc = methodMetrics.hasScaladoc,
-      isDeprecated = methodMetrics.isDeprecated,
-      parentMember = methodMetrics.parentMember,
-      // Cyclomatic complexity
+      metadata = methodMetrics.metadata,
       cComplexity = methodMetrics.cComplexity,
-      // Nesting depth
+      hasScaladoc = methodMetrics.hasScaladoc,
       nestingDepth = methodMetrics.nestingDepth,
-      // Parameter metrics
-      totalParams = methodMetrics.totalParams,
-      paramLists = methodMetrics.paramLists,
-      implicitParamLists = methodMetrics.implicitParamLists,
-      usingParamLists = methodMetrics.usingParamLists,
-      implicitParams = methodMetrics.implicitParams,
-      usingParams = methodMetrics.usingParams,
-      defaultedParams = methodMetrics.defaultedParams,
-      byNameParams = methodMetrics.byNameParams,
-      varargParams = methodMetrics.varargParams,
-      // inline
-      hasInlineModifier = methodMetrics.hasInlineModifier,
-      inlineParamCount = methodMetrics.inlineParamCount,
-      // implicit
-      isImplicitConversion = methodMetrics.isImplicitConversion,
-      // explicitness
-      isAbstract = methodMetrics.isAbstract,
-      hasExplicitReturnType = methodMetrics.hasExplicitReturnType,
-      inferredReturnType = methodMetrics.inferredReturnType,
-      // Pattern matching metrics
-      pmMatches = methodMetrics.pmMatches,
-      pmCases = methodMetrics.pmCases,
-      pmGuards = methodMetrics.pmGuards,
-      pmWildcards = methodMetrics.pmWildcards,
-      pmMaxNesting = methodMetrics.pmMaxNesting,
-      pmNestedMatches = methodMetrics.pmNestedMatches,
-      pmAvgCasesPerMatch = methodMetrics.pmAvgCasesPerMatch,
-      // Branch density metrics
-      bdBranches = methodMetrics.bdBranches,
-      bdIfCount = methodMetrics.bdIfCount,
-      bdCaseCount = methodMetrics.bdCaseCount,
-      bdLoopCount = methodMetrics.bdLoopCount,
-      bdCatchCaseCount = methodMetrics.bdCatchCaseCount,
-      bdBoolOpsCount = methodMetrics.bdBoolOpsCount,
-      bdDensityPer100 = methodMetrics.bdDensityPer100,
-      bdBoolOpsPer100 = methodMetrics.bdBoolOpsPer100
+      paramStats = methodMetrics.parameterMetrics,
+      inlineAndImplicitStats = methodMetrics.inlineAndImplicitMetrics,
+      patternMatchingMetrics = methodMetrics.patternMatchingMetrics,
+      branchDensityMetrics = methodMetrics.branchDensityMetrics
     )
   }
 
@@ -438,114 +374,141 @@ object Stats {
     *   public/private symbol counts, return type explicitness, inline/implicit metrics, and pattern matching
     *   statistics.
     */
-  def fileRollup(fileMetricsResult: FileMetricsResult): FileRollup = {
+  def fileRollup(fileMetricsResult: FileMetrics): FileRollup = {
     // rollup member and method stats
-    val totalDefsValsVars = fileMetricsResult.memberMetrics.count(m =>
-      m.memberType == "val" || m.memberType == "var"
+    val totalDefsValsVars = fileMetricsResult.memberMetrics.count((m: MemberMetrics) =>
+      m.metadata.declarationType == "val" || m.metadata.declarationType == "var"
     ) + fileMetricsResult.methodMetrics.size
     val totalPublicDefsValsVars = fileMetricsResult.memberMetrics.count(m =>
-      m.memberType == "val" || m.memberType == "var" && m.accessModifier == "public"
+      m.metadata.declarationType == "val" || m.metadata.declarationType == "var" && m.metadata.accessModifier == "public"
     ) +
-      fileMetricsResult.methodMetrics.count(_.accessModifier == "public")
+      fileMetricsResult.methodMetrics.count(_.metadata.accessModifier == "public")
     val explicitDefsValsVars = fileMetricsResult.methodMetrics.count(
-      _.hasExplicitReturnType
-    ) + fileMetricsResult.memberMetrics.count(_.hasExplicitReturnType)
+      _.inlineAndImplicitMetrics.hasExplicitReturnType
+    ) + fileMetricsResult.memberMetrics.count(_.inlineAndImplicitMetrics.hasExplicitReturnType)
     val explicitPublicDefsValsVars =
-      fileMetricsResult.methodMetrics.count(m => m.hasExplicitReturnType && m.accessModifier == "public") + // defs
+      fileMetricsResult.methodMetrics.count(m =>
+        m.inlineAndImplicitMetrics.hasExplicitReturnType && m.metadata.accessModifier == "public"
+      ) + // defs
         fileMetricsResult.memberMetrics.count(m =>
-          (m.memberType == "val" || m.memberType == "var") && m.hasExplicitReturnType && m.accessModifier == "public"
+          (m.metadata.declarationType == "val" || m.metadata.declarationType == "var") && m.inlineAndImplicitMetrics.hasExplicitReturnType && m.metadata.accessModifier == "public"
         ) // vals/vars
 
     FileRollup(
       // core metrics
-      loc = fileMetricsResult.fileMetrics.linesOfCode,
+      loc = fileMetricsResult.fileMetadata.linesOfCode,
       totalFunctions = fileMetricsResult.methodMetrics.size,
-      totalPublicFunctions = fileMetricsResult.methodMetrics.count(x => x.accessModifier == "public"),
-      totalPrivateFunctions = fileMetricsResult.methodMetrics.count(x => x.accessModifier == "private"),
-      fileSizeBytes = fileMetricsResult.fileMetrics.fileSizeBytes,
+      totalPublicFunctions = fileMetricsResult.methodMetrics.count(x => x.metadata.accessModifier == "public"),
+      totalPrivateFunctions = fileMetricsResult.methodMetrics.count(x => x.metadata.accessModifier == "private"),
+      fileSizeBytes = fileMetricsResult.fileMetadata.fileSizeBytes,
       totalSymbols = fileMetricsResult.memberMetrics.size + fileMetricsResult.methodMetrics.size,
-      totalPublicSymbols =
-        (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics).count(_.accessModifier == "public"),
-      totalPrivateSymbols =
-        (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics).count(_.accessModifier == "private"),
-      totalNestedSymbols =
-        (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics).count(_.accessModifier == "local"),
+      totalPublicSymbols = (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics)
+        .count(_.metadata.accessModifier == "public"),
+      totalPrivateSymbols = (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics)
+        .count(_.metadata.accessModifier == "private"),
+      totalNestedSymbols = (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics)
+        .count(_.metadata.accessModifier == "local"),
       documentedPublicSymbols = (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics).count(m =>
-        m.accessModifier == "public" && m.hasScaladoc
+        m.metadata.accessModifier == "public" && m.hasScaladoc
       ),
       totalDeprecatedSymbols =
-        (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics).count(_.isDeprecated),
+        (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics).count(_.metadata.isDeprecated),
       // return type explicitness
       totalDefsValsVars = fileMetricsResult.memberMetrics.count(m =>
-        m.memberType == "val" || m.memberType == "var"
+        m.metadata.declarationType == "val" || m.metadata.declarationType == "var"
       ) + fileMetricsResult.methodMetrics.size,
       totalPublicDefsValsVars = fileMetricsResult.memberMetrics.count(m =>
-        m.memberType == "val" || m.memberType == "var" && m.accessModifier == "public"
+        m.metadata.declarationType == "val" || m.metadata.declarationType == "var" && m.metadata.accessModifier == "public"
       ) +
-        fileMetricsResult.methodMetrics.count(_.accessModifier == "public"),
-      explicitDefsValsVars = fileMetricsResult.methodMetrics.count(
-        _.hasExplicitReturnType
-      ) + fileMetricsResult.memberMetrics.count(_.hasExplicitReturnType),
-      explicitPublicDefsValsVars =
-        fileMetricsResult.methodMetrics.count(m => m.hasExplicitReturnType && m.accessModifier == "public") + // defs
+        fileMetricsResult.methodMetrics.count(_.metadata.accessModifier == "public"),
+
+      // inline and implicit stats
+      inlineAndImplicitStats = InlineAndImplicitStats(
+        explicitDefsValsVars = fileMetricsResult.methodMetrics.count(
+          _.inlineAndImplicitMetrics.hasExplicitReturnType
+        ) + fileMetricsResult.memberMetrics.count(_.inlineAndImplicitMetrics.hasExplicitReturnType),
+        explicitPublicDefsValsVars = fileMetricsResult.methodMetrics.count(m =>
+          m.inlineAndImplicitMetrics.hasExplicitReturnType && m.metadata.accessModifier == "public"
+        ) + // defs
           fileMetricsResult.memberMetrics.count(m =>
-            (m.memberType == "val" || m.memberType == "var") && m.hasExplicitReturnType && m.accessModifier == "public" // vals/vars
+            (m.metadata.declarationType == "val" || m.metadata.declarationType == "var") && m.inlineAndImplicitMetrics.hasExplicitReturnType && m.metadata.accessModifier == "public" // vals/vars
           ),
-      returnTypeExplicitness =
-        if (totalDefsValsVars > 0) (explicitDefsValsVars.toDouble / totalDefsValsVars.toDouble) * 100.0 else 0.0,
-      publicReturnTypeExplicitness =
-        if (totalPublicDefsValsVars > 0)
-          (explicitPublicDefsValsVars.toDouble / totalPublicDefsValsVars.toDouble) * 100.0
-        else 0.0,
-      // inline
-      inlineMethods = fileMetricsResult.methodMetrics.count(_.hasInlineModifier),
-      inlineVals = fileMetricsResult.memberMetrics.count(m => m.hasInlineModifier && m.memberType == "val"),
-      inlineVars = fileMetricsResult.memberMetrics.count(m => m.hasInlineModifier && m.memberType == "var"),
-      inlineParams = fileMetricsResult.methodMetrics.map(_.inlineParamCount).sum,
-      // implicit
-      implicitVals = fileMetricsResult.memberMetrics.count(m => m.memberType == "val" && m.isImplicit),
-      implicitVars = fileMetricsResult.memberMetrics.count(m => m.memberType == "var" && m.isImplicit),
-      implicitConversions = fileMetricsResult.methodMetrics.count(_.isImplicitConversion),
-      givenInstances = fileMetricsResult.memberMetrics.count(_.isGivenInstance),
-      givenConversions = fileMetricsResult.memberMetrics.count(_.isGivenConversion),
+        returnTypeExplicitness =
+          if (totalDefsValsVars > 0) (explicitDefsValsVars.toDouble / totalDefsValsVars.toDouble) * 100.0 else 0.0,
+        publicReturnTypeExplicitness =
+          if (totalPublicDefsValsVars > 0)
+            (explicitPublicDefsValsVars.toDouble / totalPublicDefsValsVars.toDouble) * 100.0
+          else 0.0,
+        inlineMethods = fileMetricsResult.methodMetrics.count(_.inlineAndImplicitMetrics.hasInlineModifier),
+        inlineVals = fileMetricsResult.memberMetrics.count(m =>
+          m.inlineAndImplicitMetrics.hasInlineModifier && m.metadata.declarationType == "val"
+        ),
+        inlineVars = fileMetricsResult.memberMetrics.count(m =>
+          m.inlineAndImplicitMetrics.hasInlineModifier && m.metadata.declarationType == "var"
+        ),
+        inlineParams =
+          fileMetricsResult.methodMetrics.map(_.inlineAndImplicitMetrics.inlineParamCount.getOrElse(0)).sum,
+        // implicit
+        implicitVals = fileMetricsResult.memberMetrics.count(m =>
+          m.metadata.declarationType == "val" && m.inlineAndImplicitMetrics.isImplicit
+        ),
+        implicitVars = fileMetricsResult.memberMetrics.count(m =>
+          m.metadata.declarationType == "var" && m.inlineAndImplicitMetrics.isImplicit
+        ),
+        implicitConversions = fileMetricsResult.methodMetrics.count(_.inlineAndImplicitMetrics.isImplicitConversion),
+        givenInstances =
+          fileMetricsResult.memberMetrics.count(_.inlineAndImplicitMetrics.isGivenInstance.getOrElse(false)),
+        givenConversions =
+          fileMetricsResult.memberMetrics.count(_.inlineAndImplicitMetrics.isGivenConversion.getOrElse(false))
+      ),
+
       // Pattern Matching
-      pmMatches =
-        fileMetricsResult.methodMetrics.map(_.pmMatches).sum + fileMetricsResult.memberMetrics.map(_.pmMatches).sum,
-      pmCases = fileMetricsResult.methodMetrics.map(_.pmCases).sum + fileMetricsResult.memberMetrics.map(_.pmCases).sum,
-      pmGuards =
-        fileMetricsResult.methodMetrics.map(_.pmGuards).sum + fileMetricsResult.memberMetrics.map(_.pmGuards).sum,
-      pmWildcards = fileMetricsResult.methodMetrics.map(_.pmWildcards).sum +
-        fileMetricsResult.memberMetrics.map(_.pmWildcards).sum,
-      pmMaxNesting = fileMetricsResult.methodMetrics.map(_.pmMaxNesting).sum +
-        fileMetricsResult.memberMetrics.map(_.pmMaxNesting).sum,
-      pmNestedMatches = fileMetricsResult.methodMetrics.map(_.pmNestedMatches).sum +
-        fileMetricsResult.memberMetrics.map(_.pmNestedMatches).sum,
+      patternMatchingStats = PatternMatchingStats(
+        matches = fileMetricsResult.methodMetrics
+          .map(_.patternMatchingMetrics.matches)
+          .sum + fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.matches).sum,
+        cases = fileMetricsResult.methodMetrics
+          .map(_.patternMatchingMetrics.cases)
+          .sum + fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.cases).sum,
+        guards = fileMetricsResult.methodMetrics
+          .map(_.patternMatchingMetrics.guards)
+          .sum + fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.guards).sum,
+        wildcards = fileMetricsResult.methodMetrics.map(_.patternMatchingMetrics.wildcards).sum +
+          fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.wildcards).sum,
+        maxNesting = fileMetricsResult.methodMetrics.map(_.patternMatchingMetrics.maxNesting).sum +
+          fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.maxNesting).sum,
+        nestedMatches = fileMetricsResult.methodMetrics.map(_.patternMatchingMetrics.nestedMatches).sum +
+          fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.nestedMatches).sum
+      ),
+
       // Branch Density
-      bdBranches = fileMetricsResult.methodMetrics.map(_.bdBranches).sum +
-        fileMetricsResult.memberMetrics.map(_.bdBranches).sum,
-      bdIfCount = fileMetricsResult.methodMetrics.map(_.bdIfCount).sum +
-        fileMetricsResult.memberMetrics.map(_.bdIfCount).sum,
-      bdCaseCount = fileMetricsResult.methodMetrics.map(_.bdCaseCount).sum +
-        fileMetricsResult.memberMetrics.map(_.bdCaseCount).sum,
-      bdLoopCount = fileMetricsResult.methodMetrics.map(_.bdLoopCount).sum +
-        fileMetricsResult.memberMetrics.map(_.bdLoopCount).sum,
-      bdCatchCaseCount = fileMetricsResult.methodMetrics.map(_.bdCatchCaseCount).sum +
-        fileMetricsResult.memberMetrics.map(_.bdCatchCaseCount).sum,
-      bdBoolOpsCount = fileMetricsResult.methodMetrics.map(_.bdBoolOpsCount).sum +
-        fileMetricsResult.memberMetrics.map(_.bdBoolOpsCount).sum,
-      // Calculate density metrics based on file's total lines of code
-      bdDensityPer100 = {
-        val totalBranches = fileMetricsResult.methodMetrics.map(_.bdBranches).sum +
-          fileMetricsResult.memberMetrics.map(_.bdBranches).sum
-        val loc = fileMetricsResult.fileMetrics.linesOfCode
-        if (loc == 0) 0.0 else 100.0 * totalBranches.toDouble / loc
-      },
-      bdBoolOpsPer100 = {
-        val totalBoolOps = fileMetricsResult.methodMetrics.map(_.bdBoolOpsCount).sum +
-          fileMetricsResult.memberMetrics.map(_.bdBoolOpsCount).sum
-        val loc = fileMetricsResult.fileMetrics.linesOfCode
-        if (loc == 0) 0.0 else 100.0 * totalBoolOps.toDouble / loc
-      }
+      branchDensityStats = BranchDensityStats(
+        branches = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.branches).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.branches).sum,
+        ifCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.ifCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.ifCount).sum,
+        caseCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.caseCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.caseCount).sum,
+        loopCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.loopCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.loopCount).sum,
+        catchCaseCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.catchCaseCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.catchCaseCount).sum,
+        boolOpsCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.boolOpsCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.boolOpsCount).sum,
+        // Calculate density metrics based on file's total lines of code
+        densityPer100 = {
+          val totalBranches = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.branches).sum +
+            fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.branches).sum
+          val loc = fileMetricsResult.fileMetadata.linesOfCode
+          if (loc == 0) 0.0 else 100.0 * totalBranches.toDouble / loc
+        },
+        boolOpsPer100 = {
+          val totalBoolOps = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.boolOpsCount).sum +
+            fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.boolOpsCount).sum
+          val loc = fileMetricsResult.fileMetadata.linesOfCode
+          if (loc == 0) 0.0 else 100.0 * totalBoolOps.toDouble / loc
+        }
+      )
     )
   }
 
@@ -555,7 +518,7 @@ object Stats {
     * This method extracts the essential file-level metadata such as project ID, file ID, file name, package name, lines
     * of code, and file size from a `FileMetricsResult` and wraps it into a `FileStatsHeader` object.
     *
-    * @param fileMetricsResult
+    * @param fileMetrics
     *   The file metrics result containing metadata and metrics for the file, including project ID, file ID, file name,
     *   package name, lines of code, and file size in bytes.
     * @param projectBaseDir
@@ -564,10 +527,10 @@ object Stats {
     *   A `FileStatsHeader` object that captures the header-level metrics for the file and its associated project.
     */
   def fileStatsHeader(
-      fileMetricsResult: FileMetricsResult,
+      fileMetrics: FileMetrics,
       projectBaseDir: Option[java.io.File] = None
-  ): FileStatsHeader = {
-    val file = fileMetricsResult.fileMetrics.file
+  ): FileStatsMetadata = {
+    val file = fileMetrics.fileMetadata.file
 
     // Compute a relative path if projectBaseDir is provided
     val relativePath = projectBaseDir match {
@@ -580,14 +543,14 @@ object Stats {
       case None => file.getPath
     }
 
-    FileStatsHeader(
-      projectId = fileMetricsResult.fileMetrics.projectId.getOrElse("N/A"),
-      fileId = fileMetricsResult.fileMetrics.fileId,
+    FileStatsMetadata(
+      projectId = fileMetrics.fileMetadata.projectId.getOrElse("N/A"),
+      fileId = fileMetrics.fileMetadata.fileId,
       fileName = file.getName,
       filePath = relativePath,
-      packageName = fileMetricsResult.fileMetrics.packageName,
-      linesOfCode = fileMetricsResult.fileMetrics.linesOfCode,
-      fileSizeBytes = fileMetricsResult.fileMetrics.fileSizeBytes
+      packageName = fileMetrics.fileMetadata.packageName,
+      linesOfCode = fileMetrics.fileMetadata.linesOfCode,
+      fileSizeBytes = fileMetrics.fileMetadata.fileSizeBytes
     )
   }
 
@@ -610,8 +573,8 @@ object Stats {
     */
   def packageStats(packageName: String, packageLoc: Int, fileStatsList: Vector[FileRollup]): PackageRollup = {
     // Aggregate branch density metrics
-    val totalBranches = fileStatsList.map(_.bdBranches).sum
-    val totalBoolOps = fileStatsList.map(_.bdBoolOpsCount).sum
+    val totalBranches = fileStatsList.map(_.branchDensityStats.branches).sum
+    val totalBoolOps = fileStatsList.map(_.branchDensityStats.boolOpsCount).sum
 
     // Aggregate FileStats into PackageStats
     PackageRollup(
@@ -620,33 +583,56 @@ object Stats {
       publicFunctions = fileStatsList.map(_.totalPublicFunctions).sum,
       privateFunctions = fileStatsList.map(_.totalPrivateFunctions).sum,
       // Inline metrics
-      inlineMethods = fileStatsList.map(_.inlineMethods).sum,
-      inlineVals = fileStatsList.map(_.inlineVals).sum,
-      inlineVars = fileStatsList.map(_.inlineVars).sum,
-      inlineParams = fileStatsList.map(_.inlineParams).sum,
-      // Implicit metrics (Note: PackageStats doesn't have implicitDefs field)
-      implicitVals = fileStatsList.map(_.implicitVals).sum,
-      implicitVars = fileStatsList.map(_.implicitVars).sum,
-      implicitConversions = fileStatsList.map(_.implicitConversions).sum,
-      // Given metrics
-      givenInstances = fileStatsList.map(_.givenInstances).sum,
-      givenConversions = fileStatsList.map(_.givenConversions).sum,
+      inlineAndImplicitStats = InlineAndImplicitStats(
+        explicitDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitDefsValsVars).sum,
+        explicitPublicDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitPublicDefsValsVars).sum,
+        returnTypeExplicitness = {
+          val totalDefsValsVars = fileStatsList.map(_.totalDefsValsVars).sum
+          val explicitDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitDefsValsVars).sum
+          if (totalDefsValsVars > 0)
+            (explicitDefsValsVars.toDouble / totalDefsValsVars.toDouble) * 100.0
+          else 0.0
+        },
+        publicReturnTypeExplicitness = {
+          val totalPublicDefsValsVars = fileStatsList.map(_.totalPublicDefsValsVars).sum
+          val explicitPublicDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitPublicDefsValsVars).sum
+          if (totalPublicDefsValsVars > 0)
+            (explicitPublicDefsValsVars.toDouble / totalPublicDefsValsVars.toDouble) * 100.0
+          else 0.0
+        },
+        // Inline metrics
+        inlineMethods = fileStatsList.map(_.inlineAndImplicitStats.inlineMethods).sum,
+        inlineVals = fileStatsList.map(_.inlineAndImplicitStats.inlineVals).sum,
+        inlineVars = fileStatsList.map(_.inlineAndImplicitStats.inlineVars).sum,
+        inlineParams = fileStatsList.map(_.inlineAndImplicitStats.inlineParams).sum,
+        // Implicit metrics (Note: PackageStats doesn't have implicitDefs field)
+        implicitVals = fileStatsList.map(_.inlineAndImplicitStats.implicitVals).sum,
+        implicitVars = fileStatsList.map(_.inlineAndImplicitStats.implicitVars).sum,
+        implicitConversions = fileStatsList.map(_.inlineAndImplicitStats.implicitConversions).sum,
+        // Given metrics
+        givenInstances = fileStatsList.map(_.inlineAndImplicitStats.givenInstances).sum,
+        givenConversions = fileStatsList.map(_.inlineAndImplicitStats.givenConversions).sum
+      ),
       // Pattern matching metrics
-      pmMatches = fileStatsList.map(_.pmMatches).sum,
-      pmCases = fileStatsList.map(_.pmCases).sum,
-      pmGuards = fileStatsList.map(_.pmGuards).sum,
-      pmWildcards = fileStatsList.map(_.pmWildcards).sum,
-      pmMaxNesting = if (fileStatsList.nonEmpty) fileStatsList.map(_.pmMaxNesting).max else 0,
-      pmNestedMatches = fileStatsList.map(_.pmNestedMatches).sum,
+      patternMatchingStats = PatternMatchingStats(
+        matches = fileStatsList.map(_.patternMatchingStats.matches).sum,
+        cases = fileStatsList.map(_.patternMatchingStats.cases).sum,
+        guards = fileStatsList.map(_.patternMatchingStats.guards).sum,
+        wildcards = fileStatsList.map(_.patternMatchingStats.wildcards).sum,
+        maxNesting = if (fileStatsList.nonEmpty) fileStatsList.map(_.patternMatchingStats.maxNesting).max else 0,
+        nestedMatches = fileStatsList.map(_.patternMatchingStats.nestedMatches).sum
+      ),
       // Branch density metrics
-      bdBranches = totalBranches,
-      bdIfCount = fileStatsList.map(_.bdIfCount).sum,
-      bdCaseCount = fileStatsList.map(_.bdCaseCount).sum,
-      bdLoopCount = fileStatsList.map(_.bdLoopCount).sum,
-      bdCatchCaseCount = fileStatsList.map(_.bdCatchCaseCount).sum,
-      bdBoolOpsCount = totalBoolOps,
-      bdDensityPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBranches.toDouble / packageLoc,
-      bdBoolOpsPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBoolOps.toDouble / packageLoc
+      branchDensityStats = BranchDensityStats(
+        branches = totalBranches,
+        ifCount = fileStatsList.map(_.branchDensityStats.ifCount).sum,
+        caseCount = fileStatsList.map(_.branchDensityStats.caseCount).sum,
+        loopCount = fileStatsList.map(_.branchDensityStats.loopCount).sum,
+        catchCaseCount = fileStatsList.map(_.branchDensityStats.catchCaseCount).sum,
+        boolOpsCount = totalBoolOps,
+        densityPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBranches.toDouble / packageLoc,
+        boolOpsPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBoolOps.toDouble / packageLoc
+      )
     )
   }
 

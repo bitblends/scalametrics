@@ -44,7 +44,7 @@ ScalaMetrics is a powerful static analysis library for Scala projects. It provid
 Add ScalaMetrics to your `build.sbt`:
 
 ```scala
-libraryDependencies += "com.bitblends" %% "scalametrics" % "0.1.0"
+libraryDependencies += "com.bitblends" %% "scalametrics" % "x.y.z"
 ```
 
 ## Documentation
@@ -52,62 +52,160 @@ Learn more by visiting [ScalaMetrics Documentation](https://bitblends.github.io/
 
 ## Quick Start
 
-Full project analysis example
-```scala
+ScalaMetrics offers a wide range of code metrics to help you analyze and improve the quality of your Scala codebase.
+There are two types of metrics that ScalaMetrics is able to generate: `Aggregated Project Statistics` and `Raw Metrics`.
+The aggregated stats is generally recommended for most use cases as it provides a more concise view of the codebase
+while still capturing important details through roll-ups.
+
+After calling either `generateProjectStats` or `generateProjectMetrics`, you will receive a case class containing
+the metrics. You can then process these metrics based on your needs.
+
+### Raw Metrics
+
+#### Full project analysis (raw metrics)
+
+``` scala
 import java.io.File
-import com.bitblends.scalametrics.metrics.model.ProjectInfo
+import com.bitblends.scalametrics.metrics.model.{ProjectInfo, ProjectMetrics}
 import com.bitblends.scalametrics.utils.Id
 import com.bitblends.scalametrics.ScalaMetrics
 
 // Minimal ProjectInfo setup
 val projectInfo = ProjectInfo(
-  projectId = Id.of("MyScalaProject"), // or use any unique identifier of your choice
+  projectId = Id.of("MyScalaProject"), // or any unique identifier of your choice
   name = "MyScalaProject",
   version = "1.0.0",
   scalaVersion = "2.13.17"
 )
 
-// You can specify multiple source directories
+// Specify one or more source directories
 val sourceDirectories = Seq(
   new File("src/main/scala"),
-  new File("src/main/scala-3"),
+  new File("src/main/scala-3")
 )
 
 // Gather all Scala source files
 val sourceFiles = sourceDirectories.flatMap { dir => (dir ** "*.scala").get }
 
-// Generate project-level metrics
+// Generate metrics
 val projectMetrics: ProjectMetrics = ScalaMetrics.generateProjectMetrics(
   files = sourceFiles,
   projectBaseDir = new File("/home/projects", "MyScalaProject"), // root directory of the project, example: /home/projects/MyScalaProject
   projectInfo = projectInfo
 )
 ```
-Or analyze a file (automatic dialect detection)
-```scala
+
+#### Analyze a single file (with automatic dialect detection)
+
+You can analyze a single Scala file to get its metrics using `generateFileMetrics`. The dialect will be automatically
+detected based on the file content.
+
+``` scala
 import java.io.File
 import com.bitblends.scalametrics.ScalaMetrics
-import com.bitblends.scalametrics.metrics.model.FileMetricsResult
+import com.bitblends.scalametrics.metrics.model.FileMetrics
 
 val file = new File("src/main/scala/example/MyClass.scala")
-val result: Option[FileMetricsResult] = generateFileMetrics(file)
+val result: Option[FileMetrics] = ScalaMetrics.generateFileMetrics(file)
 ```
 
-Or analyze a single file with a dialect
-```scala
+#### Analyze a single file with a dialect
+
+You can also specify a dialect explicitly if you want to override the automatic detection.
+
+``` scala
 import java.io.File
 import com.bitblends.scalametrics.ScalaMetrics
-import com.bitblends.scalametrics.metrics.model.FileMetricsResult
+import com.bitblends.scalametrics.metrics.model.FileMetrics
 import scala.meta.Dialect
 
 val file = new File("src/main/scala/example/MyClass.scala")
-val result: Option[FileMetricsResult] = generateFileMetrics(file)
+val result: Option[FileMetrics] = ScalaMetrics.generateFileMetrics(file)
 
 // You can provide a dialect if you want to override the automatic detection
 import org.scalameta.dialects.{Scala213, Scala212, Scala3}
 
 val dialect: Dialect = Scala213 // or Scala212, Scala3
-val result: Option[FileMetricsResult] = ScalaMetrics.generateFileMetrics(file, dialect = Some(dialect))
+val result: Option[FileMetrics] = ScalaMetrics.generateFileMetrics(file, dialect = Some(dialect))
+```
+
+`ProjectMetrics` case class contains raw metrics for the entire project, including file-level, member-level, and
+method-level metrics (no package or roll-ups). `FileMetrics` case class contains the metrics for a single file
+along with its methods and members.
+
+``` scala
+case class ProjectMetrics(
+    projectInfo: ProjectInfo,
+    fileMetrics: Vector[FileMetrics]
+)
+
+case class FileMetrics(
+    metadata: FileMetadata,
+    methodMetrics: Vector[MethodMetrics] = Vector.empty,
+    memberMetrics: Vector[MemberMetrics] = Vector.empty
+)
+```
+
+### Aggregated Project Statistics
+
+For a complete project analysis you can provide a minimal `ProjectInfo` case class, source files, and the base directory
+of the project to receive a `ProjectStats` case class.
+This case class contains aggregated statistics for the entire project, including file-level, package-level, and method
+and member-level statistics (with roll-ups).
+
+``` scala
+import java.io.File
+import com.bitblends.scalametrics.metrics.model.{ProjectInfo, ProjectStats}
+import com.bitblends.scalametrics.utils.Id
+import com.bitblends.scalametrics.ScalaMetrics
+
+// Minimal ProjectInfo setup
+val projectInfo = ProjectInfo(
+  projectId = Id.of("MyScalaProject"), // or any unique identifier of your choice
+  name = "MyScalaProject",
+  version = "1.0.0",
+  scalaVersion = "2.13.17"
+)
+
+// Specify one or more source directories
+val sourceDirectories = Seq(
+  new File("src/main/scala"),
+  new File("src/main/scala-3")
+)
+
+// Gather all Scala source files
+val sourceFiles = sourceDirectories.flatMap { dir => (dir ** "*.scala").get }
+
+// Generate ProjectStats
+val projectStats: ProjectStats = ScalaMetrics.generateProjectStats(
+  files = sourceFiles,
+  projectBaseDir = new File("/home/projects", "MyScalaProject"), // root directory of the project, example: /home/projects/MyScalaProject
+  projectInfo = projectInfo
+)
+```
+
+`ProjectStats` case class contains aggregated statistics for the entire project, including file-level, package-level,
+and method and member-level statistics (with roll-ups).
+
+``` scala scala
+case class ProjectStats(
+    metadata: ProjectMetadata,
+    projectRollup: ProjectRollup,
+    packages: Vector[Package]
+)
+
+// ... ProjectRollup, ProjectMetadata (see documentation)
+
+case class Package(packageRollup: PackageRollup, fileStats: Vector[FileStats])
+
+// ... PackageRollup (see documentation)
+
+case class FileStats(
+    metadata: FileStatsMetadata,
+    fileRollup: FileRollup,
+    memberStats: Vector[MemberStats],
+    methodStats: Vector[MethodStats]
+)
 ```
 
 ## Contributing
