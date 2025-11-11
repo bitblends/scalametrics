@@ -206,7 +206,7 @@ object Stats {
         publicReturnTypeExplicitness = publicReturnTypeExplicitness,
         inlineMethods = inlineMethods,
         inlineVals = inlineVals,
-        inlineVars = inlineVals,
+        inlineVars = inlineVars,
         inlineParams = inlineParams,
         implicitVals = implicitVals,
         implicitVars = implicitVars,
