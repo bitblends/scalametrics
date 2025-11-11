@@ -34,7 +34,7 @@ and member-level statistics (with roll-ups).
 
 ``` scala
 import java.io.File
-import com.bitblends.scalametrics.metrics.model.ProjectInfo
+import com.bitblends.scalametrics.metrics.model.{ProjectInfo, ProjectStats}
 import com.bitblends.scalametrics.utils.Id
 import com.bitblends.scalametrics.ScalaMetrics
 
@@ -76,7 +76,7 @@ specific needs.
 
 ``` scala
 import java.io.File
-import com.bitblends.scalametrics.metrics.model.ProjectInfo
+import com.bitblends.scalametrics.metrics.model.{ProjectInfo, ProjectMetrics}
 import com.bitblends.scalametrics.utils.Id
 import com.bitblends.scalametrics.ScalaMetrics
 
@@ -113,10 +113,10 @@ detected based on the file content.
 ``` scala
 import java.io.File
 import com.bitblends.scalametrics.ScalaMetrics
-import com.bitblends.scalametrics.metrics.model.FileMetricsResult
+import com.bitblends.scalametrics.metrics.model.FileMetrics
 
 val file = new File("src/main/scala/example/MyClass.scala")
-val result: Option[FileMetricsResult] = ScalaMetrics.generateFileMetrics(file)
+val result: Option[FileMetrics] = ScalaMetrics.generateFileMetrics(file)
 ```
 
 #### Analyze a single file with a dialect
@@ -126,33 +126,33 @@ You can also specify a dialect explicitly if you want to override the automatic 
 ``` scala
 import java.io.File
 import com.bitblends.scalametrics.ScalaMetrics
-import com.bitblends.scalametrics.metrics.model.FileMetricsResult
+import com.bitblends.scalametrics.metrics.model.FileMetrics
 import scala.meta.Dialect
 
 val file = new File("src/main/scala/example/MyClass.scala")
-val result: Option[FileMetricsResult] = ScalaMetrics.generateFileMetrics(file)
+val result: Option[FileMetrics] = ScalaMetrics.generateFileMetrics(file)
 
 // You can provide a dialect if you want to override the automatic detection
 import org.scalameta.dialects.{Scala213, Scala212, Scala3}
 
 val dialect: Dialect = Scala213 // or Scala212, Scala3
-val result: Option[FileMetricsResult] = ScalaMetrics.generateFileMetrics(file, dialect = Some(dialect))
+val result: Option[FileMetrics] = ScalaMetrics.generateFileMetrics(file, dialect = Some(dialect))
 ```
 
 ---
 
 `ProjectMetrics` case class contains raw metrics for the entire project, including file-level, member-level, and
-method-level metrics (no package or roll-ups). `FileMetricsResult` case class contains the metrics for a single file
+method-level metrics (no package or roll-ups). `FileMetrics` case class contains the metrics for a single file
 along with its methods and members.
 
 ``` scala
 case class ProjectMetrics(
     projectInfo: ProjectInfo,
-    fileMetrics: Vector[FileMetricsResult]
+    fileMetrics: Vector[FileMetrics]
 )
 
-case class FileMetricsResult(
-    fileMetrics: FileMetrics,
+case class FileMetrics(
+    metadata: FileMetadata,
     methodMetrics: Vector[MethodMetrics] = Vector.empty,
     memberMetrics: Vector[MemberMetrics] = Vector.empty
 )

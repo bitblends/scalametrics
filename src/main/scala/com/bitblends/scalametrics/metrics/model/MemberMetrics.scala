@@ -25,10 +25,10 @@ package com.bitblends.scalametrics.metrics.model
   * @param inlineAndImplicitMetrics
   *   Metrics related to inline and implicit properties of the member, including inline modifiers, implicit conversions,
   *   and explicitness of type definitions.
-  * @param pmMetrics
+  * @param patternMatchingMetrics
   *   Metrics associated with pattern matching constructs in the member's code, capturing details on matches, cases,
   *   nesting, guards, and related complexities.
-  * @param bdMetrics
+  * @param branchDensityMetrics
   *   Metrics related to branch density and logical complexity within the member's code, including details on branch
   *   types, densities, and boolean operations.
   */
@@ -38,6 +38,6 @@ case class MemberMetrics(
     nestingDepth: Int,
     hasScaladoc: Boolean,
     inlineAndImplicitMetrics: InlineAndImplicitMetrics,
-    pmMetrics: PatternMatchingMetrics,
-    bdMetrics: BranchDensityMetrics
+    patternMatchingMetrics: PatternMatchingMetrics,
+    branchDensityMetrics: BranchDensityMetrics
 ) extends Symbol

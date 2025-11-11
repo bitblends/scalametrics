@@ -63,13 +63,13 @@ trait Symbol {
     * to the symbol. It provides insights into the number of matches, cases, guards, wildcards, and their distribution
     * across the analyzed code.
     */
-  val pmMetrics: PatternMatchingMetrics
+  val patternMatchingMetrics: PatternMatchingMetrics
 
   /**
     * Represents branch density metrics for the symbol. Provides insights into branching structures and boolean
     * operations within the associated code symbol. It encapsulates details about the number and types of branches,
     * boolean operation complexity, and their density relative to the total code volume.
     */
-  val bdMetrics: BranchDensityMetrics
+  val branchDensityMetrics: BranchDensityMetrics
 
 }

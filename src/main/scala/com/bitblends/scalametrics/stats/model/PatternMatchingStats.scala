@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Benjamin Saff and contributors
+ * SPDX-License-Identifier: MIT
+ */
+
 package com.bitblends.scalametrics.stats.model
 
 /**

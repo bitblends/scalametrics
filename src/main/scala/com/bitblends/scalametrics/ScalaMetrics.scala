@@ -6,7 +6,7 @@
 package com.bitblends.scalametrics
 
 import com.bitblends.scalametrics.analyzer._
-import com.bitblends.scalametrics.metrics.model.{FileMetrics, FileMetricsResult, ProjectInfo, ProjectMetrics}
+import com.bitblends.scalametrics.metrics.model.{FileMetadata, FileMetrics, ProjectInfo, ProjectMetrics}
 import com.bitblends.scalametrics.stats.Stats
 import com.bitblends.scalametrics.stats.model.ProjectStats
 import com.bitblends.scalametrics.utils.{ScalaDialectDetector, Util}
@@ -97,8 +97,8 @@ object ScalaMetrics {
         Util.getParsed(src, file, dialect).map { tree =>
           val init: AnalysisCtx = AnalysisCtx(file = file, tree = tree, projectId = Some(projectInfo.projectId))
           val out: AnalysisCtx = analyzers.foldLeft(init)((c: AnalysisCtx, a: Analyzer) => a.run(c))
-          val fm: FileMetrics = out.fileMetrics.getOrElse(sys.error(s"No FileMetrics for ${file.getPath}"))
-          FileMetricsResult(fm, out.methods, out.members)
+          val fm: FileMetadata = out.fileMetrics.getOrElse(sys.error(s"No FileMetrics for ${file.getPath}"))
+          FileMetrics(fm, out.methods, out.members)
         }
       } finally src.close()
     }.toVector
@@ -120,7 +120,7 @@ object ScalaMetrics {
     *   An `Option[FileMetricsResult]` containing the extracted metrics and analysis results, or `None` if parsing
     *   fails.
     */
-  def generateFileMetrics(file: File, dialect: Option[Dialect] = None): Option[FileMetricsResult] =
+  def generateFileMetrics(file: File, dialect: Option[Dialect] = None): Option[FileMetrics] =
     scala.util
       .Using(Source.fromFile(file))(_.mkString)
       .toOption
@@ -132,7 +132,7 @@ object ScalaMetrics {
           val init: AnalysisCtx = AnalysisCtx(file = file, tree = tree)
           val analyzers: List[Analyzer] = List(FileAnalyzer, MemberAnalyzer, MethodAnalyzer)
           val out: AnalysisCtx = analyzers.foldLeft(init)((c: AnalysisCtx, a: Analyzer) => a.run(c))
-          out.fileMetrics.map(fm => FileMetricsResult(fm, out.methods, out.members))
+          out.fileMetrics.map(fm => FileMetrics(fm, out.methods, out.members))
         }
       }
 }

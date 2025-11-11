@@ -1,5 +1,9 @@
+/*
+ * SPDX-FileCopyrightText: 2025 Benjamin Saff and contributors
+ * SPDX-License-Identifier: MIT
+ */
+
 package com.bitblends.scalametrics.stats.model
-import com.bitblends.scalametrics.stats.model.StatsBase.norm
 
 /**
   * Defines a base trait for statistical models. This serves as a foundation or marker trait for components within the

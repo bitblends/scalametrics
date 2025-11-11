@@ -302,10 +302,10 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmMetrics.matches shouldBe 1
-    method.pmMetrics.cases shouldBe 4
-    method.pmMetrics.guards should be > 0
-    method.pmMetrics.guards should be > 0
+    method.patternMatchingMetrics.matches shouldBe 1
+    method.patternMatchingMetrics.cases shouldBe 4
+    method.patternMatchingMetrics.guards should be > 0
+    method.patternMatchingMetrics.guards should be > 0
   }
 
   it should "compute branch density metrics" in {
@@ -326,8 +326,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdMetrics.branches should be > 0
-    method.bdMetrics.ifCount should be > 0
+    method.branchDensityMetrics.branches should be > 0
+    method.branchDensityMetrics.ifCount should be > 0
   }
 
   it should "detect explicit return type" in {
@@ -507,7 +507,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmMetrics.matches should be > 0
+    method.patternMatchingMetrics.matches should be > 0
   }
 
   it should "handle methods with loop constructs" in {
@@ -530,7 +530,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdMetrics.loopCount should be > 0
+    method.branchDensityMetrics.loopCount should be > 0
   }
 
   it should "handle methods with try-catch blocks" in {
@@ -553,7 +553,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdMetrics.catchCaseCount should be > 0
+    method.branchDensityMetrics.catchCaseCount should be > 0
   }
 
   it should "handle methods with boolean operators" in {
@@ -572,7 +572,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdMetrics.boolOpsCount should be > 0
+    method.branchDensityMetrics.boolOpsCount should be > 0
   }
 
   it should "detect implicit conversion methods" in {
@@ -694,8 +694,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmMetrics.matches shouldBe 2
-    method.pmMetrics.avgCasesPerMatch should be > 0.0
+    method.patternMatchingMetrics.matches shouldBe 2
+    method.patternMatchingMetrics.avgCasesPerMatch should be > 0.0
   }
 
   it should "handle methods with for comprehensions" in {
@@ -737,7 +737,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.bdMetrics.densityPer100 should be >= 0.0
+    method.branchDensityMetrics.densityPer100 should be >= 0.0
   }
 
   it should "require fileId to be set in context" in {
@@ -782,8 +782,8 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.pmMetrics.nestedMatches should be > 0
-    method.pmMetrics.maxNesting should be > 1
+    method.patternMatchingMetrics.nestedMatches should be > 0
+    method.patternMatchingMetrics.maxNesting should be > 1
   }
 
   it should "handle empty method body" in {

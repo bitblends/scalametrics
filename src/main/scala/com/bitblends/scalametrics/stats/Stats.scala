@@ -35,22 +35,22 @@ object Stats {
 
     val fileStatsList: Vector[FileStats] = projectMetrics.fileMetrics.map(fm => fileStats(fm, projectBaseDir))
     val packageStatsList: Vector[PackageRollup] = fileStatsList
-      .groupBy(_.header.packageName)
+      .groupBy(_.metadata.packageName)
       .map { case (packageName: String, fileStatsInPackage: Vector[FileStats]) =>
-        val packageLoc: Int = fileStatsInPackage.map(_.header.linesOfCode).sum
+        val packageLoc: Int = fileStatsInPackage.map(_.metadata.linesOfCode).sum
         packageStats(packageName, packageLoc, fileStatsInPackage.map(_.fileRollup))
       }
       .toVector
 
     val totalPackages = packageStatsList.size
     val fileRollupList: Seq[FileRollup] = fileStatsList.map(_.fileRollup)
-    val methodStatList = fileStatsList.flatMap(_.declarationStats.methodStats)
-    val memberStatList = fileStatsList.flatMap(_.declarationStats.memberStats)
+    val methodStatList = fileStatsList.flatMap(_.methodStats)
+    val memberStatList = fileStatsList.flatMap(_.memberStats)
 
     // Core metrics
     val totalFiles = fileStatsList.size
-    val totalLoc = fileStatsList.map(_.header.linesOfCode).foldLeft(0)(_ + _)
-    val totalFileSizeBytes = fileStatsList.map(_.header.fileSizeBytes).foldLeft(0L)(_ + _)
+    val totalLoc = fileStatsList.map(_.metadata.linesOfCode).foldLeft(0)(_ + _)
+    val totalFileSizeBytes = fileStatsList.map(_.metadata.fileSizeBytes).foldLeft(0L)(_ + _)
     val averageFileSizeBytes = if (totalFiles > 0) totalFileSizeBytes / totalFiles else 0L
 
     // Function metrics
@@ -142,8 +142,8 @@ object Stats {
     // Count packages with high complexity (threshold: avg complexity > 10)
     val packagesWithHighComplexity = packageStatsList.count { pkg =>
       val pkgMethods: Vector[MethodStats] = fileStatsList
-        .filter(_.header.packageName == pkg.name)
-        .flatMap(_.declarationStats.methodStats)
+        .filter(_.metadata.packageName == pkg.name)
+        .flatMap(_.methodStats)
       if (pkgMethods.nonEmpty) {
         val avgComplexity = pkgMethods.map(_.cComplexity).sum.toDouble / pkgMethods.size
         avgComplexity > 10.0
@@ -153,12 +153,12 @@ object Stats {
     // Count packages with low documentation (threshold: < 50% coverage)
     val packagesWithLowDocumentation = packageStatsList.count { pkg =>
       val pkgPublicSymbols = fileStatsList
-        .filter(_.header.packageName == pkg.name)
-        .flatMap(f => f.declarationStats.methodStats ++ f.declarationStats.memberStats)
+        .filter(_.metadata.packageName == pkg.name)
+        .flatMap(f => f.methodStats ++ f.memberStats)
         .count(_.metadata.accessModifier == "public")
       val pkgDocumentedSymbols = fileStatsList
-        .filter(_.header.packageName == pkg.name)
-        .flatMap(f => f.declarationStats.methodStats ++ f.declarationStats.memberStats)
+        .filter(_.metadata.packageName == pkg.name)
+        .flatMap(f => f.methodStats ++ f.memberStats)
         .count(s => s.metadata.accessModifier == "public" && s.hasScaladoc)
       if (pkgPublicSymbols > 0) {
         val coverage = 100.0 * pkgDocumentedSymbols.toDouble / pkgPublicSymbols
@@ -244,7 +244,7 @@ object Stats {
     )
 
     ProjectStats(
-      header = projectMetadata(projectMetrics.projectInfo),
+      metadata = projectMetadata(projectMetrics.projectInfo),
       projectRollup = projectStats,
       packages = packageStatsList.map(pkgStat =>
         Package(
@@ -268,8 +268,8 @@ object Stats {
     * @return
     *   A `ProjectStatsHeader` object that encapsulates the project's metadata in a structured format.
     */
-  private def projectMetadata(projectInfo: ProjectInfo): ProjectStatsHeader = {
-    ProjectStatsHeader(
+  private def projectMetadata(projectInfo: ProjectInfo): ProjectMetadata = {
+    ProjectMetadata(
       name = projectInfo.name,
       version = projectInfo.version,
       scalaVersion = projectInfo.scalaVersion,
@@ -305,14 +305,12 @@ object Stats {
     *   A `FileStats` instance encapsulating the file's computed header data, aggregated rollup metrics, and structured
     *   declaration statistics for methods and members.
     */
-  def fileStats(fileMetricsResult: FileMetricsResult, projectBaseDir: Option[java.io.File] = None): FileStats = {
+  def fileStats(fileMetricsResult: FileMetrics, projectBaseDir: Option[java.io.File] = None): FileStats = {
     FileStats(
-      header = fileStatsHeader(fileMetricsResult, projectBaseDir),
+      metadata = fileStatsHeader(fileMetricsResult, projectBaseDir),
       fileRollup = fileRollup(fileMetricsResult),
-      DeclarationStats(
-        fileMetricsResult.memberMetrics.map(memberStats),
-        fileMetricsResult.methodMetrics.map(methodStats)
-      )
+      memberStats = fileMetricsResult.memberMetrics.map(memberStats),
+      methodStats = fileMetricsResult.methodMetrics.map(methodStats)
     )
   }
 
@@ -337,8 +335,8 @@ object Stats {
       nestingDepth = memberMetrics.nestingDepth,
       hasScaladoc = memberMetrics.hasScaladoc,
       inlineAndImplicitStats = memberMetrics.inlineAndImplicitMetrics,
-      patternMatchingMetrics = memberMetrics.pmMetrics,
-      branchDensityMetrics = memberMetrics.bdMetrics
+      patternMatchingMetrics = memberMetrics.patternMatchingMetrics,
+      branchDensityMetrics = memberMetrics.branchDensityMetrics
     )
   }
 
@@ -360,8 +358,8 @@ object Stats {
       nestingDepth = methodMetrics.nestingDepth,
       paramStats = methodMetrics.parameterMetrics,
       inlineAndImplicitStats = methodMetrics.inlineAndImplicitMetrics,
-      patternMatchingMetrics = methodMetrics.pmMetrics,
-      branchDensityMetrics = methodMetrics.bdMetrics
+      patternMatchingMetrics = methodMetrics.patternMatchingMetrics,
+      branchDensityMetrics = methodMetrics.branchDensityMetrics
     )
   }
 
@@ -376,7 +374,7 @@ object Stats {
     *   public/private symbol counts, return type explicitness, inline/implicit metrics, and pattern matching
     *   statistics.
     */
-  def fileRollup(fileMetricsResult: FileMetricsResult): FileRollup = {
+  def fileRollup(fileMetricsResult: FileMetrics): FileRollup = {
     // rollup member and method stats
     val totalDefsValsVars = fileMetricsResult.memberMetrics.count((m: MemberMetrics) =>
       m.metadata.declarationType == "val" || m.metadata.declarationType == "var"
@@ -398,11 +396,11 @@ object Stats {
 
     FileRollup(
       // core metrics
-      loc = fileMetricsResult.fileMetrics.linesOfCode,
+      loc = fileMetricsResult.fileMetadata.linesOfCode,
       totalFunctions = fileMetricsResult.methodMetrics.size,
       totalPublicFunctions = fileMetricsResult.methodMetrics.count(x => x.metadata.accessModifier == "public"),
       totalPrivateFunctions = fileMetricsResult.methodMetrics.count(x => x.metadata.accessModifier == "private"),
-      fileSizeBytes = fileMetricsResult.fileMetrics.fileSizeBytes,
+      fileSizeBytes = fileMetricsResult.fileMetadata.fileSizeBytes,
       totalSymbols = fileMetricsResult.memberMetrics.size + fileMetricsResult.methodMetrics.size,
       totalPublicSymbols = (fileMetricsResult.memberMetrics ++ fileMetricsResult.methodMetrics)
         .count(_.metadata.accessModifier == "public"),
@@ -467,47 +465,47 @@ object Stats {
       // Pattern Matching
       patternMatchingStats = PatternMatchingStats(
         matches = fileMetricsResult.methodMetrics
-          .map(_.pmMetrics.matches)
-          .sum + fileMetricsResult.memberMetrics.map(_.pmMetrics.matches).sum,
+          .map(_.patternMatchingMetrics.matches)
+          .sum + fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.matches).sum,
         cases = fileMetricsResult.methodMetrics
-          .map(_.pmMetrics.cases)
-          .sum + fileMetricsResult.memberMetrics.map(_.pmMetrics.cases).sum,
+          .map(_.patternMatchingMetrics.cases)
+          .sum + fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.cases).sum,
         guards = fileMetricsResult.methodMetrics
-          .map(_.pmMetrics.guards)
-          .sum + fileMetricsResult.memberMetrics.map(_.pmMetrics.guards).sum,
-        wildcards = fileMetricsResult.methodMetrics.map(_.pmMetrics.wildcards).sum +
-          fileMetricsResult.memberMetrics.map(_.pmMetrics.wildcards).sum,
-        maxNesting = fileMetricsResult.methodMetrics.map(_.pmMetrics.maxNesting).sum +
-          fileMetricsResult.memberMetrics.map(_.pmMetrics.maxNesting).sum,
-        nestedMatches = fileMetricsResult.methodMetrics.map(_.pmMetrics.nestedMatches).sum +
-          fileMetricsResult.memberMetrics.map(_.pmMetrics.nestedMatches).sum
+          .map(_.patternMatchingMetrics.guards)
+          .sum + fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.guards).sum,
+        wildcards = fileMetricsResult.methodMetrics.map(_.patternMatchingMetrics.wildcards).sum +
+          fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.wildcards).sum,
+        maxNesting = fileMetricsResult.methodMetrics.map(_.patternMatchingMetrics.maxNesting).sum +
+          fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.maxNesting).sum,
+        nestedMatches = fileMetricsResult.methodMetrics.map(_.patternMatchingMetrics.nestedMatches).sum +
+          fileMetricsResult.memberMetrics.map(_.patternMatchingMetrics.nestedMatches).sum
       ),
 
       // Branch Density
       branchDensityStats = BranchDensityStats(
-        branches = fileMetricsResult.methodMetrics.map(_.bdMetrics.branches).sum +
-          fileMetricsResult.memberMetrics.map(_.bdMetrics.branches).sum,
-        ifCount = fileMetricsResult.methodMetrics.map(_.bdMetrics.ifCount).sum +
-          fileMetricsResult.memberMetrics.map(_.bdMetrics.ifCount).sum,
-        caseCount = fileMetricsResult.methodMetrics.map(_.bdMetrics.caseCount).sum +
-          fileMetricsResult.memberMetrics.map(_.bdMetrics.caseCount).sum,
-        loopCount = fileMetricsResult.methodMetrics.map(_.bdMetrics.loopCount).sum +
-          fileMetricsResult.memberMetrics.map(_.bdMetrics.loopCount).sum,
-        catchCaseCount = fileMetricsResult.methodMetrics.map(_.bdMetrics.catchCaseCount).sum +
-          fileMetricsResult.memberMetrics.map(_.bdMetrics.catchCaseCount).sum,
-        boolOpsCount = fileMetricsResult.methodMetrics.map(_.bdMetrics.boolOpsCount).sum +
-          fileMetricsResult.memberMetrics.map(_.bdMetrics.boolOpsCount).sum,
+        branches = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.branches).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.branches).sum,
+        ifCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.ifCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.ifCount).sum,
+        caseCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.caseCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.caseCount).sum,
+        loopCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.loopCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.loopCount).sum,
+        catchCaseCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.catchCaseCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.catchCaseCount).sum,
+        boolOpsCount = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.boolOpsCount).sum +
+          fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.boolOpsCount).sum,
         // Calculate density metrics based on file's total lines of code
         densityPer100 = {
-          val totalBranches = fileMetricsResult.methodMetrics.map(_.bdMetrics.branches).sum +
-            fileMetricsResult.memberMetrics.map(_.bdMetrics.branches).sum
-          val loc = fileMetricsResult.fileMetrics.linesOfCode
+          val totalBranches = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.branches).sum +
+            fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.branches).sum
+          val loc = fileMetricsResult.fileMetadata.linesOfCode
           if (loc == 0) 0.0 else 100.0 * totalBranches.toDouble / loc
         },
         boolOpsPer100 = {
-          val totalBoolOps = fileMetricsResult.methodMetrics.map(_.bdMetrics.boolOpsCount).sum +
-            fileMetricsResult.memberMetrics.map(_.bdMetrics.boolOpsCount).sum
-          val loc = fileMetricsResult.fileMetrics.linesOfCode
+          val totalBoolOps = fileMetricsResult.methodMetrics.map(_.branchDensityMetrics.boolOpsCount).sum +
+            fileMetricsResult.memberMetrics.map(_.branchDensityMetrics.boolOpsCount).sum
+          val loc = fileMetricsResult.fileMetadata.linesOfCode
           if (loc == 0) 0.0 else 100.0 * totalBoolOps.toDouble / loc
         }
       )
@@ -520,7 +518,7 @@ object Stats {
     * This method extracts the essential file-level metadata such as project ID, file ID, file name, package name, lines
     * of code, and file size from a `FileMetricsResult` and wraps it into a `FileStatsHeader` object.
     *
-    * @param fileMetricsResult
+    * @param fileMetrics
     *   The file metrics result containing metadata and metrics for the file, including project ID, file ID, file name,
     *   package name, lines of code, and file size in bytes.
     * @param projectBaseDir
@@ -529,10 +527,10 @@ object Stats {
     *   A `FileStatsHeader` object that captures the header-level metrics for the file and its associated project.
     */
   def fileStatsHeader(
-      fileMetricsResult: FileMetricsResult,
+      fileMetrics: FileMetrics,
       projectBaseDir: Option[java.io.File] = None
-  ): FileStatsHeader = {
-    val file = fileMetricsResult.fileMetrics.file
+  ): FileStatsMetadata = {
+    val file = fileMetrics.fileMetadata.file
 
     // Compute a relative path if projectBaseDir is provided
     val relativePath = projectBaseDir match {
@@ -545,14 +543,14 @@ object Stats {
       case None => file.getPath
     }
 
-    FileStatsHeader(
-      projectId = fileMetricsResult.fileMetrics.projectId.getOrElse("N/A"),
-      fileId = fileMetricsResult.fileMetrics.fileId,
+    FileStatsMetadata(
+      projectId = fileMetrics.fileMetadata.projectId.getOrElse("N/A"),
+      fileId = fileMetrics.fileMetadata.fileId,
       fileName = file.getName,
       filePath = relativePath,
-      packageName = fileMetricsResult.fileMetrics.packageName,
-      linesOfCode = fileMetricsResult.fileMetrics.linesOfCode,
-      fileSizeBytes = fileMetricsResult.fileMetrics.fileSizeBytes
+      packageName = fileMetrics.fileMetadata.packageName,
+      linesOfCode = fileMetrics.fileMetadata.linesOfCode,
+      fileSizeBytes = fileMetrics.fileMetadata.fileSizeBytes
     )
   }
 
@@ -585,33 +583,56 @@ object Stats {
       publicFunctions = fileStatsList.map(_.totalPublicFunctions).sum,
       privateFunctions = fileStatsList.map(_.totalPrivateFunctions).sum,
       // Inline metrics
-      inlineMethods = fileStatsList.map(_.inlineAndImplicitStats.inlineMethods).sum,
-      inlineVals = fileStatsList.map(_.inlineAndImplicitStats.inlineVals).sum,
-      inlineVars = fileStatsList.map(_.inlineAndImplicitStats.inlineVars).sum,
-      inlineParams = fileStatsList.map(_.inlineAndImplicitStats.inlineParams).sum,
-      // Implicit metrics (Note: PackageStats doesn't have implicitDefs field)
-      implicitVals = fileStatsList.map(_.inlineAndImplicitStats.implicitVals).sum,
-      implicitVars = fileStatsList.map(_.inlineAndImplicitStats.implicitVars).sum,
-      implicitConversions = fileStatsList.map(_.inlineAndImplicitStats.implicitConversions).sum,
-      // Given metrics
-      givenInstances = fileStatsList.map(_.inlineAndImplicitStats.givenInstances).sum,
-      givenConversions = fileStatsList.map(_.inlineAndImplicitStats.givenConversions).sum,
+      inlineAndImplicitStats = InlineAndImplicitStats(
+        explicitDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitDefsValsVars).sum,
+        explicitPublicDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitPublicDefsValsVars).sum,
+        returnTypeExplicitness = {
+          val totalDefsValsVars = fileStatsList.map(_.totalDefsValsVars).sum
+          val explicitDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitDefsValsVars).sum
+          if (totalDefsValsVars > 0)
+            (explicitDefsValsVars.toDouble / totalDefsValsVars.toDouble) * 100.0
+          else 0.0
+        },
+        publicReturnTypeExplicitness = {
+          val totalPublicDefsValsVars = fileStatsList.map(_.totalPublicDefsValsVars).sum
+          val explicitPublicDefsValsVars = fileStatsList.map(_.inlineAndImplicitStats.explicitPublicDefsValsVars).sum
+          if (totalPublicDefsValsVars > 0)
+            (explicitPublicDefsValsVars.toDouble / totalPublicDefsValsVars.toDouble) * 100.0
+          else 0.0
+        },
+        // Inline metrics
+        inlineMethods = fileStatsList.map(_.inlineAndImplicitStats.inlineMethods).sum,
+        inlineVals = fileStatsList.map(_.inlineAndImplicitStats.inlineVals).sum,
+        inlineVars = fileStatsList.map(_.inlineAndImplicitStats.inlineVars).sum,
+        inlineParams = fileStatsList.map(_.inlineAndImplicitStats.inlineParams).sum,
+        // Implicit metrics (Note: PackageStats doesn't have implicitDefs field)
+        implicitVals = fileStatsList.map(_.inlineAndImplicitStats.implicitVals).sum,
+        implicitVars = fileStatsList.map(_.inlineAndImplicitStats.implicitVars).sum,
+        implicitConversions = fileStatsList.map(_.inlineAndImplicitStats.implicitConversions).sum,
+        // Given metrics
+        givenInstances = fileStatsList.map(_.inlineAndImplicitStats.givenInstances).sum,
+        givenConversions = fileStatsList.map(_.inlineAndImplicitStats.givenConversions).sum
+      ),
       // Pattern matching metrics
-      pmMatches = fileStatsList.map(_.patternMatchingStats.matches).sum,
-      pmCases = fileStatsList.map(_.patternMatchingStats.cases).sum,
-      pmGuards = fileStatsList.map(_.patternMatchingStats.guards).sum,
-      pmWildcards = fileStatsList.map(_.patternMatchingStats.wildcards).sum,
-      pmMaxNesting = if (fileStatsList.nonEmpty) fileStatsList.map(_.patternMatchingStats.maxNesting).max else 0,
-      pmNestedMatches = fileStatsList.map(_.patternMatchingStats.nestedMatches).sum,
+      patternMatchingStats = PatternMatchingStats(
+        matches = fileStatsList.map(_.patternMatchingStats.matches).sum,
+        cases = fileStatsList.map(_.patternMatchingStats.cases).sum,
+        guards = fileStatsList.map(_.patternMatchingStats.guards).sum,
+        wildcards = fileStatsList.map(_.patternMatchingStats.wildcards).sum,
+        maxNesting = if (fileStatsList.nonEmpty) fileStatsList.map(_.patternMatchingStats.maxNesting).max else 0,
+        nestedMatches = fileStatsList.map(_.patternMatchingStats.nestedMatches).sum
+      ),
       // Branch density metrics
-      bdBranches = totalBranches,
-      bdIfCount = fileStatsList.map(_.branchDensityStats.ifCount).sum,
-      bdCaseCount = fileStatsList.map(_.branchDensityStats.caseCount).sum,
-      bdLoopCount = fileStatsList.map(_.branchDensityStats.loopCount).sum,
-      bdCatchCaseCount = fileStatsList.map(_.branchDensityStats.catchCaseCount).sum,
-      bdBoolOpsCount = totalBoolOps,
-      bdDensityPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBranches.toDouble / packageLoc,
-      bdBoolOpsPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBoolOps.toDouble / packageLoc
+      branchDensityStats = BranchDensityStats(
+        branches = totalBranches,
+        ifCount = fileStatsList.map(_.branchDensityStats.ifCount).sum,
+        caseCount = fileStatsList.map(_.branchDensityStats.caseCount).sum,
+        loopCount = fileStatsList.map(_.branchDensityStats.loopCount).sum,
+        catchCaseCount = fileStatsList.map(_.branchDensityStats.catchCaseCount).sum,
+        boolOpsCount = totalBoolOps,
+        densityPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBranches.toDouble / packageLoc,
+        boolOpsPer100 = if (packageLoc == 0) 0.0 else 100.0 * totalBoolOps.toDouble / packageLoc
+      )
     )
   }
 

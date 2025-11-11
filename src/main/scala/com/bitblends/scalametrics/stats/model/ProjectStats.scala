@@ -8,7 +8,7 @@ package com.bitblends.scalametrics.stats.model
 /**
   * Represents a project with its associated metadata, rollup information, and a collection of packages.
   *
-  * @param header
+  * @param metadata
   *   Contains metadata and descriptive information about the project such as name, version, Scala version, and other
   *   optional details.
   * @param projectRollup
@@ -17,7 +17,7 @@ package com.bitblends.scalametrics.stats.model
   *   A collection of packages associated with the project.
   */
 case class ProjectStats(
-    header: ProjectStatsHeader,
+    metadata: ProjectMetadata,
     projectRollup: ProjectRollup,
     packages: Vector[Package]
 )

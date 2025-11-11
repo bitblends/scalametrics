@@ -6,7 +6,7 @@ lazy val root = (project in file("."))
     scalaVersion := "2.13.17",
     crossScalaVersions := Seq("2.12.20", "2.13.17", "3.3.6"),
     name := "scalametrics",
-    description := "ScalaMetrics: Comprehensive code metrics and analysis library for Scala",
+    description := "ScalaMetrics: Comprehensive code metrics and code analysis library for Scala",
     organization := "com.bitblends",
     organizationName := "BitBlends",
     organizationHomepage := Some(url("https://bitblends.com")),
@@ -23,19 +23,6 @@ lazy val root = (project in file("."))
       )
     ),
     developers := Authors.authors,
-    Compile / compile / scalacOptions ++= {
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 12)) =>
-          Seq.empty
-        case Some((2, 13)) =>
-          Seq(
-            "-opt:l:method",
-            "-opt:l:inline"
-          )
-        case _ =>
-          Seq.empty
-      }
-    },
     Compile / packageDoc / publishArtifact := true,
     Compile / packageSrc / publishArtifact := true,
     Compile / publishArtifact := true,

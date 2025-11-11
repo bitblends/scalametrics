@@ -5,7 +5,7 @@
 
 package com.bitblends.scalametrics.analyzer
 
-import com.bitblends.scalametrics.metrics.model.FileMetrics
+import com.bitblends.scalametrics.metrics.model.FileMetadata
 import com.bitblends.scalametrics.utils.{FileId, RepoRoot, Util}
 
 /**
@@ -36,7 +36,7 @@ object FileAnalyzer extends Analyzer {
   override def run(ctx: AnalysisCtx): AnalysisCtx = {
     val pkg = Util.extractPackageName(ctx.tree)
     val content = ctx.tree.pos.input.text
-    val fm = FileMetrics(
+    val fm = FileMetadata(
       projectId = ctx.projectId,
       fileId = FileId.idFor(ctx.file, ctx.projectId, RepoRoot.discover()),
       file = ctx.file,

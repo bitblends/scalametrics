@@ -43,7 +43,7 @@ package com.bitblends.scalametrics.stats.model
   * @param projectInfoNameFormal
   *   An optional, formal name for the project, if applicable.
   */
-case class ProjectStatsHeader(
+case class ProjectMetadata(
     name: String,
     version: String,
     scalaVersion: String,

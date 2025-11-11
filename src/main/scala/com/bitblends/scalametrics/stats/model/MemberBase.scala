@@ -4,7 +4,12 @@
  */
 
 package com.bitblends.scalametrics.stats.model
-import com.bitblends.scalametrics.metrics.model.{BranchDensityMetrics, Metadata, PatternMatchingMetrics}
+import com.bitblends.scalametrics.metrics.model.{
+  BranchDensityMetrics,
+  InlineAndImplicitMetrics,
+  Metadata,
+  PatternMatchingMetrics
+}
 
 /**
   * Represents the base properties and metrics of a member within a codebase.
@@ -47,6 +52,16 @@ trait MemberBase {
     * Represents the maximum level of nesting within a member, such as nested blocks, loops, or conditional structures.
     */
   val nestingDepth: Int
+
+  /**
+    * Encapsulates metrics related to the usage of inline and implicit constructs within a member.
+    *
+    * The `InlineAndImplicitStats` field provides detailed statistical data on aspects such as inline modifiers,
+    * inline-specific parameters, implicit conversions, abstractness of members, return type information, and usage of
+    * `given` constructs specific to Scala 3. It offers insights into the characteristics and behavior of the member in
+    * relation to these constructs within the codebase.
+    */
+  val inlineAndImplicitStats: InlineAndImplicitMetrics
 
   /**
     * Holds metrics related to the usage and complexity of pattern matching constructs within the analyzed member.

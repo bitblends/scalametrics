@@ -28,10 +28,10 @@ package com.bitblends.scalametrics.metrics.model
   * @param inlineAndImplicitMetrics
   *   Metrics related to the method's usage of inline and implicit features, such as whether the method is marked as
   *   `inline`, whether it is abstract, and whether it has explicit or inferred return types.
-  * @param pmMetrics
+  * @param patternMatchingMetrics
   *   Metrics related to the pattern matching constructs within the method, including counts of matches, case clauses,
   *   guards, and nesting levels.
-  * @param bdMetrics
+  * @param branchDensityMetrics
   *   Metrics related to branch density, including counts of branches, boolean operations, and normalized densities of
   *   these elements in comparison to the total code.
   */
@@ -42,6 +42,6 @@ case class MethodMetrics(
     hasScaladoc: Boolean,
     parameterMetrics: ParameterMetrics,
     inlineAndImplicitMetrics: InlineAndImplicitMetrics,
-    pmMetrics: PatternMatchingMetrics,
-    bdMetrics: BranchDensityMetrics
+    patternMatchingMetrics: PatternMatchingMetrics,
+    branchDensityMetrics: BranchDensityMetrics
 ) extends Symbol

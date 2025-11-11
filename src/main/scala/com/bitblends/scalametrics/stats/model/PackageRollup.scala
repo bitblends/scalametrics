@@ -6,100 +6,38 @@
 package com.bitblends.scalametrics.stats.model
 
 /**
-  * Represents a summary of statistical metrics for a package, including function counts, inline usage, implicit
-  * metrics, given definitions, pattern matching metrics, and branch density metrics.
+  * Represents the statistical summary of a package, including metrics related to functions, inline and implicit usage,
+  * pattern matching, and branch density. This case class aggregates multiple metrics into a unified structure to
+  * facilitate analysis of a package's overall complexity, density, and patterns of usage.
   *
   * @param name
-  *   The name of the package.
+  *   The name of the package being analyzed.
   * @param totalFunctions
-  *   The total number of functions defined in the package.
+  *   The total number of functions (both public and private) within the package.
   * @param publicFunctions
   *   The number of public functions in the package.
   * @param privateFunctions
   *   The number of private functions in the package.
-  * @param inlineMethods
-  *   The number of inline methods defined in the package.
-  * @param inlineVals
-  *   The number of inline values defined in the package.
-  * @param inlineVars
-  *   The number of inline variables defined in the package.
-  * @param inlineParams
-  *   The number of inline parameters used in the package.
-  * @param implicitVals
-  *   The number of implicit values defined in the package.
-  * @param implicitVars
-  *   The number of implicit variables defined in the package.
-  * @param implicitConversions
-  *   The number of implicit conversions defined in the package.
-  * @param givenInstances
-  *   The number of `given` instances defined in the package.
-  * @param givenConversions
-  *   The number of `given` conversions defined in the package.
-  * @param pmMatches
-  *   The total number of pattern matches in the package.
-  * @param pmCases
-  *   The total number of pattern matching cases in the package.
-  * @param pmGuards
-  *   The total number of guards in pattern matches in the package.
-  * @param pmWildcards
-  *   The total number of wildcards used in pattern matches in the package.
-  * @param pmMaxNesting
-  *   The maximum nesting level of pattern matches in the package.
-  * @param pmNestedMatches
-  *   The total number of nested pattern matches in the package.
-  * @param bdBranches
-  *   The total number of branch points in the package.
-  * @param bdIfCount
-  *   The number of `if` statements in the package.
-  * @param bdCaseCount
-  *   The number of `case` statements in the package.
-  * @param bdLoopCount
-  *   The number of loops (e.g., `for`, `while`) in the package.
-  * @param bdCatchCaseCount
-  *   The number of `catch` cases in the package.
-  * @param bdBoolOpsCount
-  *   The number of boolean operators (e.g., `&&`, `||`) in the package.
-  * @param bdDensityPer100
-  *   The branch density per 100 lines of code in the package.
-  * @param bdBoolOpsPer100
-  *   The number of boolean operations per 100 lines of code in the package.
+  * @param inlineAndImplicitStats
+  *   A collection of metrics detailing the usage of inline methods, implicit variables, and given instances.
+  * @param patternMatchingStats
+  *   A collection of statistics covering pattern matching constructs in the package, including matches, cases, guards,
+  *   and nesting levels.
+  * @param branchDensityStats
+  *   Statistics regarding branch density, including conditional statements, loop counts, and boolean operations.
   */
 case class PackageRollup(
+    // core package metrics
     name: String,
     totalFunctions: Int,
     publicFunctions: Int,
     privateFunctions: Int,
-
     // Inline and implicit/given metrics
-    inlineMethods: Int,
-    inlineVals: Int,
-    inlineVars: Int,
-    inlineParams: Int,
-    // implicit metrics
-    implicitVals: Int,
-    implicitVars: Int,
-    implicitConversions: Int,
-    // given
-    givenInstances: Int,
-    givenConversions: Int,
-
+    inlineAndImplicitStats: InlineAndImplicitStats,
     // Pattern matching metrics
-    pmMatches: Int,
-    pmCases: Int,
-    pmGuards: Int,
-    pmWildcards: Int,
-    pmMaxNesting: Int,
-    pmNestedMatches: Int,
-
+    patternMatchingStats: PatternMatchingStats,
     // Branch density metrics
-    bdBranches: Int,
-    bdIfCount: Int,
-    bdCaseCount: Int,
-    bdLoopCount: Int,
-    bdCatchCaseCount: Int,
-    bdBoolOpsCount: Int,
-    bdDensityPer100: Double,
-    bdBoolOpsPer100: Double
+    branchDensityStats: BranchDensityStats
 ) extends StatsBase {
 
   /**
@@ -117,37 +55,38 @@ case class PackageRollup(
        |  Private Functions: $privateFunctions
        |
        |Inline Usage:
-       |  Inline Methods: $inlineMethods
-       |  Inline Vals: $inlineVals
-       |  Inline Vars: $inlineVars
-       |  Inline Params: $inlineParams
+       |  Inline Methods: ${inlineAndImplicitStats.inlineMethods}
+       |  Inline Vals: ${inlineAndImplicitStats.inlineVals}
+       |  Inline Vars: ${inlineAndImplicitStats.inlineVars}
+       |  Inline Params: ${inlineAndImplicitStats.inlineParams}
        |
-       |Implicit Usage:
-       |  Implicit Vals: $implicitVals
-       |  Implicit Vars: $implicitVars
-       |  Implicit Conversions: $implicitConversions
+       |Implicit/Given Usage:
+       |  Implicit Vals: ${inlineAndImplicitStats.implicitVals}
+       |  Implicit Vars: ${inlineAndImplicitStats.implicitVars}
+       |  Implicit Conversions: ${inlineAndImplicitStats.implicitConversions}
        |
        |Given Usage:
-       |  Given Instances: $givenInstances
-       |  Given Conversions: $givenConversions
+       |
+       |  Given Instances: ${inlineAndImplicitStats.givenInstances}
+       |  Given Conversions: ${inlineAndImplicitStats.givenConversions}
        |
        |Pattern Matching Metrics:
-       |  Matches: $pmMatches
-       |  Cases: $pmCases
-       |  Guards: $pmGuards
-       |  Wildcards: $pmWildcards
-       |  Max Nesting Level: $pmMaxNesting
-       |  Nested Matches: $pmNestedMatches
+       |  Matches: ${patternMatchingStats.matches}
+       |  Cases: ${patternMatchingStats.cases}
+       |  Guards: ${patternMatchingStats.guards}
+       |  Wildcards: ${patternMatchingStats.wildcards}
+       |  Max Nesting Level: ${patternMatchingStats.maxNesting}
+       |  Nested Matches: ${patternMatchingStats.nestedMatches}
        |
        |Branch Density Metrics:
-       |  Total Branches: $bdBranches
-       |  If Statements: $bdIfCount
-       |  Case Statements: $bdCaseCount
-       |  Loops: $bdLoopCount
-       |  Catch Cases: $bdCatchCaseCount
-       |  Boolean Operations: $bdBoolOpsCount
-       |  Branch Density per 100 LOC: ${"%.2f".format(bdDensityPer100)}
-       |  Boolean Ops per 100 LOC: ${"%.2f".format(bdBoolOpsPer100)}
+       |  Branches: ${branchDensityStats.branches}
+       |  Ifs: ${branchDensityStats.ifCount}
+       |  Cases: ${branchDensityStats.caseCount}
+       |  Loops: ${branchDensityStats.loopCount}
+       |  Catch Cases: ${branchDensityStats.catchCaseCount}
+       |  Boolean Operations: ${branchDensityStats.boolOpsCount}
+       |  Density per 100 LOC: ${"%.2f".format(branchDensityStats.densityPer100)}
+       |  Boolean Ops per 100 LOC: ${"%.2f".format(branchDensityStats.boolOpsPer100)}
        |""".stripMargin
   }
 

@@ -173,7 +173,7 @@ object MethodAnalyzer extends Analyzer {
           hasExplicitReturnType = rtExplicitness.hasExplicitReturnType,
           inferredReturnType = rtExplicitness.inferredReturnType
         ),
-        pmMetrics = PatternMatchingMetrics(
+        patternMatchingMetrics = PatternMatchingMetrics(
           matches = pmMetrics.matches,
           cases = pmMetrics.cases,
           guards = pmMetrics.guards,
@@ -183,7 +183,7 @@ object MethodAnalyzer extends Analyzer {
           avgCasesPerMatch = if (pmMetrics.matches == 0) 0.0 else pmMetrics.cases.toDouble / pmMetrics.matches,
           matchCases = Nil
         ),
-        bdMetrics = BranchDensityMetrics(
+        branchDensityMetrics = BranchDensityMetrics(
           branches = bdMetricsResult.branches,
           ifCount = bdMetricsResult.ifCount,
           caseCount = bdMetricsResult.caseCount,
@@ -269,8 +269,8 @@ object MethodAnalyzer extends Analyzer {
           hasExplicitReturnType = true,
           inferredReturnType = None
         ),
-        pmMetrics = PatternMatchingMetrics(),
-        bdMetrics = BranchDensityMetrics()
+        patternMatchingMetrics = PatternMatchingMetrics(),
+        branchDensityMetrics = BranchDensityMetrics()
       )
       (s, Vector(mm))
     }

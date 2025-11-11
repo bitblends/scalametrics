@@ -6,21 +6,67 @@
 package com.bitblends.scalametrics.stats.model
 
 /**
-  * Represents a holistic roll-up of a project's various metrics and statistics. This includes insights about
-  * structural, complexity, documentation, and usage aspects across files, packages, functions, and symbols.
+  * Represents an aggregated summary of metrics and statistics for a software project, capturing various aspects such as
+  * code complexity, symbol documentation, inline and implicit usage, pattern matching, branch density, and overall
+  * package-level summaries.
   *
-  * The class provides detailed metrics related to:
-  *   - Core project structure (files, lines of code, file size, packages).
-  *   - Function metrics (counts of public and private functions).
-  *   - Symbol metrics (counts of public, private, nested, and deprecated symbols).
-  *   - Documentation coverage, including Scaladoc coverage percentages.
-  *   - Complexity metrics, such as cyclomatic complexity and nesting depth.
-  *   - Inline, implicit, and explicitness metrics for return types.
-  *   - Pattern matching specifics, including matches, guards, and nesting.
-  *   - Branch density statistics comprising conditional, loop, and catch usages.
+  * This case class is intended for analyzing the structural and qualitative characteristics of the codebase, providing
+  * insights into code quality, maintainability, and areas that may require attention.
   *
-  * Primarily, it serves to provide reporting mechanisms and analytics for codebases, enabling better insights into
-  * quality, maintainability, and adherence to best practices.
+  * @param totalFiles
+  *   The total number of files in the project.
+  * @param totalLoc
+  *   The total number of lines of code across all files.
+  * @param totalFunctions
+  *   The total number of functions in the project.
+  * @param totalPublicFunctions
+  *   The total number of public functions.
+  * @param totalPrivateFunctions
+  *   The total number of private functions.
+  * @param averageFileSizeBytes
+  *   The average file size in bytes.
+  * @param totalFileSizeBytes
+  *   The total file size across all files in bytes.
+  * @param totalSymbols
+  *   The total number of symbols in the project.
+  * @param totalPublicSymbols
+  *   The total number of public symbols.
+  * @param totalPrivateSymbols
+  *   The total number of private symbols.
+  * @param totalDeprecatedSymbols
+  *   The total number of deprecated symbols.
+  * @param totalDefsValsVars
+  *   The total number of defs, vals, and vars.
+  * @param totalPublicDefsValsVars
+  *   The total number of public defs, vals, and vars.
+  * @param totalNestedSymbols
+  *   The total number of nested symbols.
+  * @param documentedPublicSymbols
+  *   The total number of documented public symbols.
+  * @param avgCyclomaticComplexity
+  *   The average cyclomatic complexity across the codebase.
+  * @param maxCyclomaticComplexity
+  *   The maximum cyclomatic complexity observed in the codebase.
+  * @param avgNestingDepth
+  *   The average nesting depth of code blocks.
+  * @param maxNestingDepth
+  *   The maximum nesting depth observed in the codebase.
+  * @param scalaDocCoverage
+  *   The percentage of documented public symbols.
+  * @param deprecatedSymbolsDensity
+  *   The percentage of deprecated symbols across all symbols.
+  * @param inlineAndImplicitStats
+  *   A comprehensive view of inline and implicit characteristics.
+  * @param patternMatchingStats
+  *   Statistics related to pattern matching usage.
+  * @param branchDensityStats
+  *   Statistics related to branch density and Boolean operations.
+  * @param totalPackages
+  *   The total number of packages in the project.
+  * @param packagesWithHighComplexity
+  *   Number of packages with average complexity exceeding a threshold.
+  * @param packagesWithLowDocumentation
+  *   Number of packages with documentation coverage below a threshold.
   */
 case class ProjectRollup(
     // Core metrics
@@ -31,7 +77,6 @@ case class ProjectRollup(
     totalPrivateFunctions: Int,
     averageFileSizeBytes: Long,
     totalFileSizeBytes: Long,
-
     // Symbol metrics
     totalSymbols: Int,
     totalPublicSymbols: Int,
@@ -41,26 +86,21 @@ case class ProjectRollup(
     totalPublicDefsValsVars: Int,
     totalNestedSymbols: Int,
     documentedPublicSymbols: Int,
-
     // Complexity metrics (averages and maximums)
     avgCyclomaticComplexity: Double,
     maxCyclomaticComplexity: Int,
-
     // Nesting depth metrics
     avgNestingDepth: Double,
     maxNestingDepth: Int,
-
     // Document coverage metrics
     scalaDocCoverage: Double, // Percentage of documented public symbols
     deprecatedSymbolsDensity: Double, // Percentage of deprecated symbols
-
     // Inline, implicits, explicitness metrics
     inlineAndImplicitStats: InlineAndImplicitStats,
     // Pattern matching metrics
     patternMatchingStats: PatternMatchingStats,
     // Branch density stats
     branchDensityStats: BranchDensityStats,
-
     // Package-level summary
     totalPackages: Int,
     packagesWithHighComplexity: Int, // Packages with avg complexity > threshold

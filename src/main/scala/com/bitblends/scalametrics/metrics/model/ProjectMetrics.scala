@@ -18,5 +18,5 @@ package com.bitblends.scalametrics.metrics.model
   */
 case class ProjectMetrics(
     projectInfo: ProjectInfo,
-    fileMetrics: Vector[FileMetricsResult]
+    fileMetrics: Vector[FileMetrics]
 )

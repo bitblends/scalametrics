@@ -254,8 +254,8 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.bdMetrics.branches should be > 0
-    valMetric.get.bdMetrics.ifCount should be > 0
+    valMetric.get.branchDensityMetrics.branches should be > 0
+    valMetric.get.branchDensityMetrics.ifCount should be > 0
   }
 
   it should "analyze nested classes" in {
@@ -345,9 +345,9 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.pmMetrics.matches should be > 0
-    valMetric.get.pmMetrics.cases should be > 0
-    valMetric.get.pmMetrics.wildcards should be > 0
+    valMetric.get.patternMatchingMetrics.matches should be > 0
+    valMetric.get.patternMatchingMetrics.cases should be > 0
+    valMetric.get.patternMatchingMetrics.wildcards should be > 0
   }
 
   it should "handle multiple patterns in val declarations" in {

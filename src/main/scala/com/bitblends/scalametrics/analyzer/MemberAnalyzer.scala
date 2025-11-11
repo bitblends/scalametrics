@@ -236,7 +236,7 @@ object MemberAnalyzer extends Analyzer {
           isGivenInstance = Some(givenFlags._1),
           isGivenConversion = Some(givenFlags._2)
         ),
-        pmMetrics = PatternMatchingMetrics(
+        patternMatchingMetrics = PatternMatchingMetrics(
           matches = pm.matches,
           cases = pm.cases,
           guards = pm.guards,
@@ -246,7 +246,7 @@ object MemberAnalyzer extends Analyzer {
           avgCasesPerMatch = if (pm.matches == 0) 0.0 else pm.cases.toDouble / pm.matches,
           matchCases = Nil
         ),
-        bdMetrics = BranchDensityMetrics(
+        branchDensityMetrics = BranchDensityMetrics(
           loc = loc,
           branches = bd.branches,
           ifCount = bd.ifCount,

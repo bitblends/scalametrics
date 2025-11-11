@@ -24,7 +24,7 @@ package com.bitblends.scalametrics.stats.model
   * @param fileSizeBytes
   *   Size of the file in bytes.
   */
-case class FileStatsHeader(
+case class FileStatsMetadata(
     projectId: String,
     fileId: String,
     fileName: String,

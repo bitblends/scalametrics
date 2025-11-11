@@ -5,103 +5,21 @@
 
 package com.bitblends.scalametrics.metrics.model
 
-import com.bitblends.scalametrics.utils.{FileId, RepoRoot}
-
-import java.io.File
-
 /**
-  * Represents metrics associated with a specific file in a project, including information about the file's project,
-  * identifier, package, size, and lines of code.
+  * Represents the result of analyzing metrics for a specific file, including file-level metrics and detailed metrics
+  * for the methods and members within the file.
   *
-  * @param projectId
-  *   An optional identifier for the project to which the file belongs. It will be `None` when the metrics are generated
-  *   for a single file or multiple files with no project.
-  * @param fileId
-  *   The unique identifier for the file within the project.
-  * @param file
-  *   The file object representing the file on the filesystem.
-  * @param packageName
-  *   The package name where the file resides within the project.
-  * @param linesOfCode
-  *   The total number of lines of code present in the file.
-  * @param fileSizeBytes
-  *   The size of the file in bytes.
+  * @param fileMetadata
+  *   Metrics associated with the file, such as its identifier, size, and lines of code.
+  * @param methodMetrics
+  *   A collection of metrics for each method in the file, providing detailed insights into method-level
+  *   characteristics.
+  * @param memberMetrics
+  *   A collection of metrics for each member (non-method) in the file, containing relevant information at the member
+  *   level.
   */
 case class FileMetrics(
-    projectId: Option[String],
-    fileId: String,
-    file: File,
-    packageName: String,
-    linesOfCode: Int,
-    fileSizeBytes: Long
+    fileMetadata: FileMetadata,
+    methodMetrics: Vector[MethodMetrics] = Vector.empty,
+    memberMetrics: Vector[MemberMetrics] = Vector.empty
 )
-
-/**
-  * Companion object for the `FileMetrics` case class, providing factory methods to create instances of `FileMetrics`
-  * with varying levels of detail.
-  */
-object FileMetrics {
-
-  /**
-    * Creates an instance of `FileMetrics` with no project-specific identifier.
-    *
-    * @param file
-    *   the file object representing the file on the filesystem
-    * @param packageName
-    *   the package name where the file resides within the project
-    * @param linesOfCode
-    *   the total number of lines of code present in the file
-    * @param fileSizeBytes
-    *   the size of the file in bytes
-    * @return
-    *   an instance of `FileMetrics` containing information about the specified file
-    */
-  def apply(
-      file: File,
-      packageName: String,
-      linesOfCode: Int,
-      fileSizeBytes: Long
-  ): FileMetrics = {
-    FileMetrics(
-      None,
-      fileId = FileId.idFor(file, None, RepoRoot.discover()),
-      file,
-      packageName,
-      linesOfCode,
-      fileSizeBytes
-    )
-  }
-
-  /**
-    * Creates an instance of `FileMetrics` with a project-specific identifier.
-    *
-    * @param projectId
-    *   The unique identifier of the project to which the file belongs.
-    * @param file
-    *   The file object representing the file on the filesystem.
-    * @param packageName
-    *   The package name where the file resides within the project.
-    * @param linesOfCode
-    *   The total number of lines of code present in the file.
-    * @param fileSizeBytes
-    *   The size of the file in bytes.
-    * @return
-    *   An instance of `FileMetrics` containing detailed information about the specified file, including its project ID.
-    */
-  def apply(
-      projectId: String,
-      file: File,
-      packageName: String,
-      linesOfCode: Int,
-      fileSizeBytes: Long
-  ): FileMetrics =
-    FileMetrics(
-      Some(projectId),
-      fileId = FileId.idFor(file, Some(projectId), RepoRoot.discover()),
-      file,
-      packageName,
-      linesOfCode,
-      fileSizeBytes
-    )
-
-}

@@ -62,13 +62,10 @@ case class FileRollup(
     totalDeprecatedSymbols: Int,
     totalDefsValsVars: Int,
     totalPublicDefsValsVars: Int,
-
     // Inline and implicit/given usage metrics
     inlineAndImplicitStats: InlineAndImplicitStats,
-
     // Pattern matching metrics (aggregated from methods and members)
     patternMatchingStats: PatternMatchingStats,
-
     // Branch density metrics (aggregated from methods and members
     branchDensityStats: BranchDensityStats
 ) {
