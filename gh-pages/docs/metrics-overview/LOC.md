@@ -52,14 +52,14 @@ Count all lines in the source code files.
 
 ## LOC Statistics: Size as a Signal
 
-LOC doesn’t measure quality, but it does correlate with **scope**, **review time**, and **risk**. Very large files often
+LOC doesn’t measure quality, but it does correlate with **scope**, **review time**, and **risk**. Huge files often
 hide multiple responsibilities, intertwine concerns, and make parallel work harder. Use LOC to prompt a conversation:
 “Can we split this so each part has a clear purpose?”
 
 ### 1. Split by responsibility
 
 Smaller modules create **seams** where tests, ownership, and performance work can focus. Reviewers can specialize, and
-changes stop colliding. This also helps incremental refactors—move one responsibility at a time.
+changes stop colliding. This also helps incremental refactors, move one responsibility at a time.
 
 === "Before"
 

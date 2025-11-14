@@ -5,6 +5,7 @@
 
 package com.bitblends.scalametrics.stats.model
 
+import scala.collection.immutable.ListMap
 import scala.reflect.runtime.{universe => ru}
 
 /**
@@ -37,6 +38,36 @@ trait Serializer extends Product {
   def toJson: String = Serializer.toJson(toMap)
 
   /**
+    * Ordered field names (top level only, not flattened).
+    */
+  def fieldNames: Vector[String] =
+    Serializer.paramNamesOrdered(this)
+
+  /**
+    * Ordered field->value pairs (top level only, not flattened).
+    */
+  def toListMap: ListMap[String, Any] =
+    Serializer.productToMapOrdered(this)
+
+  /**
+    * Flattened, ordered (depth-first) dotted keys, e.g. metadata.name
+    */
+  def toFlatVector(prefix: String = ""): Vector[(String, Any)] =
+    Serializer.flattenOrdered(toListMap, prefix)
+
+  /**
+    * Convenience: just the headers for CSV (flattened).
+    */
+  def csvHeaders(prefix: String = ""): Vector[String] =
+    toFlatVector(prefix).map(_._1)
+
+  /**
+    * Convenience: the values for CSV (stringified, flattened).
+    */
+  def csvValues(prefix: String = ""): Vector[String] =
+    toFlatVector(prefix).map(_._2).map(Serializer.valueToCsv)
+
+  /**
     * Provides a formatted string representation of the current instance. This method can be overridden by subclasses to
     * provide custom formatting.
     *
@@ -51,6 +82,23 @@ trait Serializer extends Product {
   * for data transformation, serialization to JSON, and flattening nested data structures.
   */
 object Serializer {
+
+  def paramNamesOrdered(p: Product): Vector[String] = {
+    val mirror = ru.runtimeMirror(p.getClass.getClassLoader)
+    try {
+      val sym = mirror.classSymbol(p.getClass)
+      val ctor = sym.primaryConstructor.asMethod
+      ctor.paramLists.flatten.map(_.name.decodedName.toString).toVector
+    } catch {
+      case _: Throwable => (0 until p.productArity).map(i => s"_${i + 1}").toVector
+    }
+  }
+
+  def productToMapOrdered(p: Product): ListMap[String, Any] = {
+    val names = paramNamesOrdered(p)
+    val values = p.productIterator.toVector
+    ListMap(names.zip(values).map { case (n, v) => n -> norm(v) }: _*)
+  }
 
   /**
     * Normalizes an input value to a standard representation. The method processes various types such as `StatsBase`
@@ -179,5 +227,45 @@ object Serializer {
       case (k, v) =>
         Map((if (prefix.isEmpty) k else s"$prefix.$k") -> v)
     }
+
+  def flattenOrdered(map: ListMap[String, Any], prefix: String = ""): Vector[(String, Any)] = {
+    val buf = Vector.newBuilder[(String, Any)]
+    map.foreach {
+      case (k, v: ListMap[_, _]) =>
+        buf ++= flattenOrdered(v.asInstanceOf[ListMap[String, Any]], if (prefix.isEmpty) k else s"$prefix.$k")
+      case (k, v: Map[_, _]) =>
+        // convert non-ListMap to ListMap to keep a deterministic order
+        val lm = ListMap(v.asInstanceOf[Map[String, Any]].toSeq.sortBy(_._1): _*)
+        buf ++= flattenOrdered(lm, if (prefix.isEmpty) k else s"$prefix.$k")
+      case (k, v) =>
+        val key = if (prefix.isEmpty) k else s"$prefix.$k"
+        buf += key -> v
+    }
+    buf.result()
+  }
+
+  def valueToCsv(v: Any): String = v match {
+    case null       => ""
+    case None       => ""
+    case Some(x)    => valueToCsv(x)
+    case s: String  => escCsv(s)
+    case b: Boolean => if (b) "true" else "false"
+    case n: Int     => n.toString
+    case n: Long    => n.toString
+    case n: Double  =>
+      if (n.isNaN || n.isInfinity) "" else java.lang.String.format(java.util.Locale.ROOT, "%.6f", n: java.lang.Double)
+    case seq: Seq[_]  => escCsv(seq.map(valueToCsv).mkString("[", " ", "]"))
+    case m: Map[_, _] =>
+      // fallback to JSON for complex nested leftovers
+      escCsv(toJson(m))
+    case other => escCsv(other.toString)
+  }
+
+  // RFC4180-ish escaping for CSV cells
+  private def escCsv(s: String): String = {
+    val needs = s.indexOf(',') >= 0 || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0 || s.indexOf('"') >= 0
+    val body = s.replace("\"", "\"\"")
+    if (needs) "\"" + body + "\"" else body
+  }
 
 }

@@ -85,7 +85,7 @@ points**.
 ## Quick refactoring recipes
 
 Refactoring for lower *perceived* complexity is mostly about **making decisions obvious**. The goal isn’t to chase a
-smaller number at any cost—it’s to shape the code so the decisions are easy to see, name, and test. Here are some small
+smaller number at any cost, it’s to shape the code so the decisions are easy to see, name, and test. Here are some small
 but effective moves to consider:
 
 ### 1. Small decision tree <span class="badge">Complexity = 3</span>
@@ -124,7 +124,7 @@ Dense boolean expressions often pack several decisions into a single line. Extra
 the count of decisions, but it reduces the readability cost. Names like `isTransient` and `safeToRetry` carry domain
 meaning
 and make it easier to see what scenarios are being permitted. This, in turn, improves test ergonomics: you can design
-cases that intentionally flip only one predicate at a time. The trade-off is a couple of extra lines; the gain is lower
+cases that intentionally flip only one predicate at a time. The trade-off is a couple of extra lines. The gain is lower
 cognitive load and fewer mistakes when the rule inevitably evolves.
 
 === "Before"
@@ -156,7 +156,7 @@ cognitive load and fewer mistakes when the rule inevitably evolves.
 
 Pattern matching puts branches next to the domain types so behavior is easy to audit. Even if the complexity stays the
 same, extracting small helpers prevents any single case from ballooning into its own mini-program. This structure is
-resilient as tokens grow—adding a new token becomes a compiler-guided change, not a scavenger hunt. If your analyzer
+resilient as tokens grow, adding a new token becomes a compiler-guided change, not a scavenger hunt. If your analyzer
 flags rising complexity here, it’s usually a nudge to either split handlers or promote behavior to the types themselves.
 
 === "Before"
@@ -201,7 +201,7 @@ flags rising complexity here, it’s usually a nudge to either split handlers or
 Guards inside `for`-comprehensions are real decision points, and mutation can distract from the core intent. Shifting to
 collection combinators doesn’t necessarily lower complexity, but it does isolate it: the predicate is where the decision
 lives; sum is just aggregation. This makes future tweaks—like changing the predicate or accumulating additional
-stats—cleaner and safer. As a side effect, removing mutation cuts down on incidental state bugs and simplifies
+stats cleaner and safer. As a side effect, removing mutation cuts down on incidental state bugs and simplifies
 property-based
 testing.
 

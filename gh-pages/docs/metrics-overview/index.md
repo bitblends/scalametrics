@@ -42,7 +42,7 @@ API
 hygiene.
 
 **Cyclomatic complexity** estimates the number of distinct paths through a function. High numbers aren’t “bad” on their
-own—some problems are inherently branchy—but they do imply more cases to test and more ways for a future edit to miss an
+own—some problems are inherently branchy but they do imply more cases to test and more ways for a future edit to miss an
 edge case. When a function crosses from “busy” to “opaque,” complexity will usually be the first needle to twitch.
 
 **Nesting depth** speaks to cognitive load. Deeply indented code asks the reader to keep more state in their head: which
@@ -112,13 +112,13 @@ look; beyond that, either refactor or surround with strong tests. Treat this as 
 
 Begin with the hotspots that cause you the most friction today. You can find them by cross‑referencing complexity with
 recent churn and file size. In almost every team, a small set of files absorbs a large share of maintenance pain. Pick
-one, aim for a small improvement—a split, a few tidy extractions, an added docstring—and ship it. Repeat next week.
+one, aim for a small improvement, a split, a few tidy extractions, an added docstring—and ship it. Repeat next week.
 You’ll see the dashboard respond.
 
 While you’re at it, enforce two low-drama habits that pay off quickly:
 
 - **Explicit return types** on public members. Private helpers can enjoy inference; public APIs benefit from clarity.
-- **Docstrings** on public types and functions, especially around typeclass instances and conversions. They’re your
+- **Docstrings** on public types and functions, especially around type class instances and conversions. They’re your
   first line of communication.
 
 Neither habit slows teams down; both reduce “surprising behavior” bugs and make reviews kinder.
@@ -128,7 +128,7 @@ Neither habit slows teams down; both reduce “surprising behavior” bugs and m
 Metrics are most useful when they’re ambient—visible when you need them, quiet when you don’t. A light‑touch workflow
 works well:
 
-- **In pull requests**, add friendly hints. “Nesting depth is 7—could we early‑return on error paths?” You’re not
+- **In pull requests**, add friendly hints. “Nesting depth is 7. Could we early‑return on error paths?” You’re not
   policing style; you’re pointing out friction.
 - **In CI artifacts or your docs site**, show a tiny dashboard: top hotspots, doc coverage by module, and a trend line
   or two. Keep it boring on purpose.
@@ -141,7 +141,7 @@ The effect is cumulative: fewer sharp edges, fewer surprises, and a codebase tha
 
 ## Common pitfalls (and how to dodge them)
 
-It’s possible to “game” metrics without improving the code—splitting a monster function into five confusing ones, for
+It’s possible to “game” metrics without improving the code, splitting a monster function into five confusing ones, for
 instance. The antidote is qualitative review: ask whether the new shape is _easier to read and test_. Another trap is
 applying the same thresholds everywhere. Domain‑heavy parsing and tiny I/O wrappers shouldn’t be judged by a single
 ruler. Establish per‑module baselines and you’ll avoid a lot of unproductive debate.

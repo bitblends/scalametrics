@@ -4,6 +4,7 @@
  */
 
 package com.bitblends.scalametrics.stats.model
+import scala.collection.immutable.ListMap
 
 /**
   * Provides serialization utilities for classes that extend this trait. Enables conversion of an instance into a map or
@@ -34,6 +35,36 @@ trait Serializer extends Product {
   def toJson: String = Serializer.toJson(toMap)
 
   /**
+    * Ordered field names (top level only, not flattened).
+    */
+  def fieldNames: Vector[String] =
+    Serializer.paramNamesOrdered(this)
+
+  /**
+    * Ordered field->value pairs (top level only, not flattened).
+    */
+  def toListMap: ListMap[String, Any] =
+    Serializer.productToMapOrdered(this)
+
+  /**
+    * Flattened, ordered (depth-first) dotted keys, e.g. metadata.name
+    */
+  def toFlatVector(prefix: String = ""): Vector[(String, Any)] =
+    Serializer.flattenOrdered(toListMap, prefix)
+
+  /**
+    * Convenience: just the headers for CSV (flattened).
+    */
+  def csvHeaders(prefix: String = ""): Vector[String] =
+    toFlatVector(prefix).map(_._1)
+
+  /**
+    * Convenience: the values for CSV (stringified, flattened).
+    */
+  def csvValues(prefix: String = ""): Vector[String] =
+    toFlatVector(prefix).map(_._2).map(Serializer.valueToCsv)
+
+  /**
     * Provides a formatted string representation of the current instance. This method can be overridden by subclasses to
     * provide custom formatting.
     *
@@ -50,6 +81,30 @@ trait Serializer extends Product {
   * used in statistical models.
   */
 object Serializer {
+
+  def paramNamesOrdered(p: Product): Vector[String] = {
+    val names = p.productElementNames.toVector
+    if (names.nonEmpty) names
+    else (0 until p.productArity).map(i => s"_${i + 1}").toVector
+  }
+
+  /**
+    * Converts a given `Product` instance into an ordered map representation where the keys are the field names of the
+    * instance's primary constructor, and the values are the corresponding field values. Field values are normalized
+    * using the `norm` method.
+    *
+    * @param p
+    *   The product instance to be converted into a map. This is typically an instance of a case class or other product
+    *   type whose fields are to be mapped.
+    * @return
+    *   A map where the keys represent the names of fields and the values are the normalized field values, preserving
+    *   the order of fields as defined in the primary constructor.
+    */
+  def productToMapOrdered(p: Product): ListMap[String, Any] = {
+    val names = paramNamesOrdered(p)
+    val values = p.productIterator.toVector
+    ListMap(names.zip(values).map { case (n, v) => n -> norm(v) }: _*)
+  }
 
   /**
     * Converts a nested map into a flattened representation, where nested keys are combined into a single key with dot
@@ -97,13 +152,6 @@ object Serializer {
     case other => "\"" + escape(other.toString) + "\""
   }
 
-  /*
-   val value = v match {
-//            case s if s.matches("-?\\d+(\\.\\d+)?") => s // Keep numbers unquoted
-//            case s                                  => s""""${escapeJson(s)}""""
-//          }
-//          s"""    "${escapeJson(k)}": $value"""
-   */
   /**
     * Escapes special characters in a string for safe inclusion in JSON formatting. This includes replacing control
     * characters and other special characters with their escaped representations (e.g., `"` becomes `\"`, `\n` becomes
@@ -164,4 +212,43 @@ object Serializer {
     case other => other
   }
 
+  def flattenOrdered(map: ListMap[String, Any], prefix: String = ""): Vector[(String, Any)] = {
+    val buf = Vector.newBuilder[(String, Any)]
+    map.foreach {
+      case (k, v: ListMap[_, _]) =>
+        buf ++= flattenOrdered(v.asInstanceOf[ListMap[String, Any]], if (prefix.isEmpty) k else s"$prefix.$k")
+      case (k, v: Map[_, _]) =>
+        // convert non-ListMap to ListMap to keep a deterministic order
+        val lm = ListMap(v.asInstanceOf[Map[String, Any]].toSeq.sortBy(_._1): _*)
+        buf ++= flattenOrdered(lm, if (prefix.isEmpty) k else s"$prefix.$k")
+      case (k, v) =>
+        val key = if (prefix.isEmpty) k else s"$prefix.$k"
+        buf += key -> v
+    }
+    buf.result()
+  }
+
+  def valueToCsv(v: Any): String = v match {
+    case null       => ""
+    case None       => ""
+    case Some(x)    => valueToCsv(x)
+    case s: String  => escCsv(s)
+    case b: Boolean => if (b) "true" else "false"
+    case n: Int     => n.toString
+    case n: Long    => n.toString
+    case n: Double  =>
+      if (n.isNaN || n.isInfinity) "" else java.lang.String.format(java.util.Locale.ROOT, "%.6f", n: java.lang.Double)
+    case seq: Seq[_]  => escCsv(seq.map(valueToCsv).mkString("[", " ", "]"))
+    case m: Map[_, _] =>
+      // fallback to JSON for complex nested leftovers
+      escCsv(toJson(m))
+    case other => escCsv(other.toString)
+  }
+
+  // RFC4180-ish escaping for CSV cells
+  private def escCsv(s: String): String = {
+    val needs = s.indexOf(',') >= 0 || s.indexOf('\n') >= 0 || s.indexOf('\r') >= 0 || s.indexOf('"') >= 0
+    val body = s.replace("\"", "\"\"")
+    if (needs) "\"" + body + "\"" else body
+  }
 }
