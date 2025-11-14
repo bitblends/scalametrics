@@ -253,6 +253,7 @@ jobs:
         run: |
           TAG=${{ needs.verify-tag.outputs.tag_name }}
           gh release create "$TAG" \
+            -- draft=true \
             --title "Release $TAG" \
             --notes-file release_notes.md \
             --repo ${{ github.repository }}
