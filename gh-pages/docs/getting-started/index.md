@@ -1,9 +1,9 @@
 ---
 title: Getting Started
 description: Learn how to install and use ScalaMetrics for comprehensive code metrics and analysis in your Scala projects.
-keywords: [ScalaMetrics, getting started, installation, code metrics, Scala, static analysis]
+keywords: [ ScalaMetrics, getting started, installation, code metrics, Scala, static analysis ]
 layout: doc
-hide: [title]
+hide: [ title ]
 ---
 
 # Getting Started
@@ -63,8 +63,17 @@ val projectStats: ProjectStats = ScalaMetrics.generateProjectStats(
 )
 ```
 
-For detailed documentation on all available metrics and their definitions, such as `MethodMetrics`, `MemberMetrics`,
-`MemberStats`, etc. please refer to the [API Reference][api-reference].
+For detailed documentation on all available metrics in `ProjectStats`, please see [Metrics Referece][metrics-reference]
+and [API Reference][api-reference].
+
+<!-- @formatter:off -->
+!!! tip
+    If you are just getting started, consider using the **aggregated metrics**. It provides a more digestible overview 
+    of your codebase while still capturing important details through roll-ups. `ProjectStats` is the foundation case 
+    class for **aggregated metrics** analysis in ScalaMetrics. It encapsulates the overall project statistics along with
+    package and file-level roll-ups. This is what you need for **aggregated metrics** analysis and reporting for your 
+    whole project.
+<!-- @formatter:on -->
 
 ### Raw Metrics
 

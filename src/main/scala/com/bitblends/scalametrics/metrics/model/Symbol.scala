@@ -24,12 +24,11 @@ trait Symbol {
     */
   val metadata: Metadata
 
-  // Cyclomatic complexity
   /**
     * Represents the cyclomatic complexity of a specific symbol in the codebase. This value indicates the number of
     * independent paths through the symbol's code, reflecting its complexity and potential testing requirements.
     */
-  val cComplexity: Int
+  val complexity: Int
 
   /**
     * Indicates whether the symbol has Scaladoc documentation.

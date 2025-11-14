@@ -6,10 +6,12 @@
 package com.bitblends.scalametrics.stats.model
 
 /**
-  * Defines a base trait for statistical models. This serves as a foundation or marker trait for components within the
-  * statistics package and can be extended by specific statistical entities.
+  * Provides serialization utilities for classes that extend this trait. Enables conversion of an instance into a map or
+  * its JSON string representation.
+  *
+  * This trait must be mixed in with classes that extend `Product`, leveraging the product's fields for serialization.
   */
-trait StatsBase extends Product {
+trait Serializer extends Product {
 
   /**
     * Converts the current instance of a class that extends `StatsBase` into a `Map[String, Any]` representation. Each
@@ -19,7 +21,27 @@ trait StatsBase extends Product {
     *   A map representation of the current instance where keys are field names and values are their corresponding
     *   normalized values.
     */
-  def toMap: Map[String, Any] = StatsBase.productToMap(this)
+  def toMap: Map[String, Any] = Serializer.productToMap(this)
+
+  /**
+    * Converts the current instance of a class that extends `StatsBase` into its JSON string representation. This method
+    * utilizes the `toMap` method to first convert the instance into a map and then serializes that map into a JSON
+    * string.
+    *
+    * @return
+    *   A JSON-formatted string representation of the current instance.
+    */
+  def toJson: String = Serializer.toJson(toMap)
+
+  /**
+    * Provides a formatted string representation of the current instance. This method can be overridden by subclasses to
+    * provide custom formatting.
+    *
+    * @return
+    *   A formatted string representation of the current instance.
+    */
+  def formattedString: String
+
 }
 
 /**
@@ -27,7 +49,7 @@ trait StatsBase extends Product {
   * manipulation, and serialization, specifically designed to handle maps, product types, and other data types commonly
   * used in statistical models.
   */
-object StatsBase {
+object Serializer {
 
   /**
     * Converts a nested map into a flattened representation, where nested keys are combined into a single key with dot
@@ -75,6 +97,13 @@ object StatsBase {
     case other => "\"" + escape(other.toString) + "\""
   }
 
+  /*
+   val value = v match {
+//            case s if s.matches("-?\\d+(\\.\\d+)?") => s // Keep numbers unquoted
+//            case s                                  => s""""${escapeJson(s)}""""
+//          }
+//          s"""    "${escapeJson(k)}": $value"""
+   */
   /**
     * Escapes special characters in a string for safe inclusion in JSON formatting. This includes replacing control
     * characters and other special characters with their escaped representations (e.g., `"` becomes `\"`, `\n` becomes
@@ -123,15 +152,15 @@ object StatsBase {
     *   The normalized representation of the input, which could be a map, list, string, or other suitable type.
     */
   private def norm(v: Any): Any = v match {
-    case s: StatsBase => s.toMap
-    case o: Option[_] => o.map(norm).orNull
-    case seq: Seq[_]  => seq.map(norm)
-    case m: Map[_, _] =>
+    case s: Serializer => s.toMap
+    case o: Option[_]  => o.map(norm).orNull
+    case seq: Seq[_]   => seq.map(norm)
+    case m: Map[_, _]  =>
       m.asInstanceOf[Map[Any, Any]].map { case (k, v2) => k.toString -> norm(v2) }
-    case p: Product if !p.isInstanceOf[StatsBase] =>
+    case p: Product if !p.isInstanceOf[Serializer] =>
       // If you want to auto-convert any Product: enable next line, else leave as toString
-      // productToMap(p)
-      p.toString
+      productToMap(p)
+    // p.toString
     case other => other
   }
 

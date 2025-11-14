@@ -255,7 +255,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.cComplexity should be > 1
+    method.complexity should be > 1
   }
 
   it should "compute nesting depth for nested structures" in {
@@ -383,7 +383,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
     method.inlineAndImplicitMetrics.isAbstract shouldBe true
     method.inlineAndImplicitMetrics.hasExplicitReturnType shouldBe true
     method.parameterMetrics.totalParams shouldBe 2
-    method.cComplexity shouldBe 0
+    method.complexity shouldBe 0
     method.nestingDepth shouldBe 0
   }
 
@@ -718,7 +718,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
     result.methods should have size 1
     val method = result.methods.head
     // For comprehensions contribute to cyclomatic complexity
-    method.cComplexity should be > 1
+    method.complexity should be > 1
   }
 
   it should "compute branch density per 100 lines" in {
@@ -800,7 +800,7 @@ class MethodAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     result.methods should have size 1
     val method = result.methods.head
-    method.cComplexity shouldBe 1
+    method.complexity shouldBe 1
     method.nestingDepth shouldBe 0
   }
 

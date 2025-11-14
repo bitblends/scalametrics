@@ -14,10 +14,6 @@ package com.bitblends.scalametrics.stats.model
   *   The total number of explicitly defined defs, vals, and vars in the code.
   * @param explicitPublicDefsValsVars
   *   The total number of explicitly defined public defs, vals, and vars.
-  * @param returnTypeExplicitness
-  *   The percentage of methods, vals, and vars in the codebase with explicitly declared return types.
-  * @param publicReturnTypeExplicitness
-  *   The percentage of public methods, vals, and vars in the codebase with explicitly declared return types.
   * @param inlineMethods
   *   The number of methods defined with the `inline` modifier.
   * @param inlineVals
@@ -39,20 +35,70 @@ package com.bitblends.scalametrics.stats.model
   */
 case class InlineAndImplicitStats(
     // explicitness metrics
-    explicitDefsValsVars: Int,
-    explicitPublicDefsValsVars: Int,
-    returnTypeExplicitness: Double, // Percentage for all defs/vals/vars
-    publicReturnTypeExplicitness: Double, // Percentage for public defs/vals/vars only
+    explicitDefsValsVars: Int = 0,
+    explicitPublicDefsValsVars: Int = 0,
     // Inline metrics
-    inlineMethods: Int,
-    inlineVals: Int,
-    inlineVars: Int,
-    inlineParams: Int,
+    inlineMethods: Int = 0,
+    inlineVals: Int = 0,
+    inlineVars: Int = 0,
+    inlineParams: Int = 0,
     // Implicit metrics
-    implicitVals: Int,
-    implicitVars: Int,
-    implicitConversions: Int,
+    implicitVals: Int = 0,
+    implicitVars: Int = 0,
+    implicitConversions: Int = 0,
     // Given metrics
-    givenInstances: Int, // scala 3
-    givenConversions: Int // scala 3
-) extends StatsBase
+    givenInstances: Int = 0, // scala 3
+    givenConversions: Int = 0 // scala 3
+) extends Serializer {
+
+  /**
+    * Combines the metrics of the current `InlineAndImplicitStats` instance with another `InlineAndImplicitStats`
+    * instance.
+    *
+    * This method performs an element-wise addition of all metrics between the two `InlineAndImplicitStats` instances
+    * and returns a new `InlineAndImplicitStats` instance containing the aggregated results.
+    *
+    * @param that
+    *   Another `InlineAndImplicitStats` instance to combine with the current one.
+    * @return
+    *   A new `InlineAndImplicitStats` instance representing the sum of the metrics from both instances.
+    */
+  def +(that: InlineAndImplicitStats): InlineAndImplicitStats = {
+    InlineAndImplicitStats(
+      explicitDefsValsVars = this.explicitDefsValsVars + that.explicitDefsValsVars,
+      explicitPublicDefsValsVars = this.explicitPublicDefsValsVars + that.explicitPublicDefsValsVars,
+      inlineMethods = this.inlineMethods + that.inlineMethods,
+      inlineVals = this.inlineVals + that.inlineVals,
+      inlineVars = this.inlineVars + that.inlineVars,
+      inlineParams = this.inlineParams + that.inlineParams,
+      implicitVals = this.implicitVals + that.implicitVals,
+      implicitVars = this.implicitVars + that.implicitVars,
+      implicitConversions = this.implicitConversions + that.implicitConversions,
+      givenInstances = this.givenInstances + that.givenInstances,
+      givenConversions = this.givenConversions + that.givenConversions
+    )
+  }
+
+  /**
+    * Generates a formatted string representation of the current `InlineAndImplicitStats` instance.
+    *
+    * @return
+    *   A formatted string representation of the current instance.
+    */
+  override def formattedString: String = {
+    s"""InlineAndImplicitStats:
+       |----------------------------------------------------------
+       |  Explicit Defs/Vals/Vars: $explicitDefsValsVars
+       |  Explicit Public Defs/Vals/Vars: $explicitPublicDefsValsVars
+       |  Inline Methods: $inlineMethods
+       |  Inline Vals: $inlineVals
+       |  Inline Vars: $inlineVars
+       |  Inline Params: $inlineParams
+       |  Implicit Vals: $implicitVals
+       |  Implicit Vars: $implicitVars
+       |  Implicit Conversions: $implicitConversions
+       |  Given Instances: $givenInstances
+       |  Given Conversions: $givenConversions
+       |""".stripMargin
+  }
+}

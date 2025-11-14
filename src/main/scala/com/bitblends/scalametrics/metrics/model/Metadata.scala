@@ -39,4 +39,4 @@ case class Metadata(
     isNested: Boolean,
     declarationType: String,
     parentMember: Option[String] = None
-) extends MetricBase
+)

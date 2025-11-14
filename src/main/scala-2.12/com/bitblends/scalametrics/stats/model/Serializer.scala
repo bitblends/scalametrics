@@ -8,10 +8,11 @@ package com.bitblends.scalametrics.stats.model
 import scala.reflect.runtime.{universe => ru}
 
 /**
-  * Defines a base trait for statistical models. This serves as a foundation or marker trait for components within the
-  * statistics package and can be extended by specific statistical entities.
+  * A trait that provides serialization capabilities for products. It offers methods to convert an instance into a
+  * normalized map representation and a serialized JSON string, enabling interoperability and data transformation across
+  * systems.
   */
-trait StatsBase extends Product {
+trait Serializer extends Product {
 
   /**
     * Converts the current instance into a map representation where the keys are the field names of the instance, and
@@ -23,15 +24,33 @@ trait StatsBase extends Product {
     *   A map where the keys represent field names and the values represent field values, recursively normalized and
     *   converted if applicable.
     */
-  def toMap: Map[String, Any] = StatsBase.productToMap(this)
+  def toMap: Map[String, Any] = Serializer.productToMap(this)
 
+  /**
+    * Converts the current instance of a class that extends `StatsBase` into its JSON string representation. This method
+    * utilizes the `toMap` method to first convert the instance into a map and then serializes that map into a JSON
+    * string.
+    *
+    * @return
+    *   A JSON-formatted string representation of the current instance.
+    */
+  def toJson: String = Serializer.toJson(toMap)
+
+  /**
+    * Provides a formatted string representation of the current instance. This method can be overridden by subclasses to
+    * provide custom formatting.
+    *
+    * @return
+    *   A formatted string representation of the current instance.
+    */
+  def formattedString: String
 }
 
 /**
   * Provides utility methods and functionality for operations related to statistical models. The object includes methods
   * for data transformation, serialization to JSON, and flattening nested data structures.
   */
-object StatsBase {
+object Serializer {
 
   /**
     * Normalizes an input value to a standard representation. The method processes various types such as `StatsBase`
@@ -47,13 +66,14 @@ object StatsBase {
     *   non-supported types, it returns the input as is.
     */
   private def norm(v: Any): Any = v match {
-    case s: StatsBase => s.toMap
-    case o: Option[_] => o.fold(null: Any)(norm)
-    case seq: Seq[_]  => seq.map(norm)
-    case m: Map[_, _] =>
+    case s: Serializer => s.toMap
+    case o: Option[_]  => o.fold(null: Any)(norm)
+    case seq: Seq[_]   => seq.map(norm)
+    case m: Map[_, _]  =>
       m.asInstanceOf[Map[Any, Any]].map { case (k, v2) => k.toString -> norm(v2) }
-    case p: Product if !p.isInstanceOf[StatsBase] =>
-      p.toString
+    case p: Product if !p.isInstanceOf[Serializer] =>
+      productToMap(p)
+    // p.toString
     case other => other
   }
 
@@ -84,10 +104,24 @@ object StatsBase {
     *   A map where the keys represent the names of fields and the values are the normalized field values.
     */
   private def productToMap(p: Product): Map[String, Any] = {
-    val names = paramNames(p)
+    val names =
+      try {
+        val mirror = ru.runtimeMirror(p.getClass.getClassLoader)
+        val sym = mirror.classSymbol(p.getClass)
+        val ctor = sym.primaryConstructor.asMethod
+        ctor.paramLists.flatten.map(_.name.decodedName.toString)
+      } catch {
+        case _: Throwable => (0 until p.productArity).map(i => s"_${i + 1}").toList
+      }
     val values = p.productIterator.toList
     names.zip(values).map { case (n, v) => n -> norm(v) }.toMap
   }
+
+//  private def productToMap(p: Product): Map[String, Any] = {
+//    val names = paramNames(p)
+//    val values = p.productIterator.toList
+//    names.zip(values).map { case (n, v) => n -> norm(v) }.toMap
+//  }
 
   def toJson(v: Any): String = v match {
     case null         => "null"

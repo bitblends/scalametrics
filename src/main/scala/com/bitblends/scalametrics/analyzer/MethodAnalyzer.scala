@@ -150,7 +150,7 @@ object MethodAnalyzer extends Analyzer {
           declarationType = "def",
           parentMember = parentMember
         ),
-        cComplexity = cc,
+        complexity = cc,
         nestingDepth = nestDepth,
         hasScaladoc = hasScaladoc,
         parameterMetrics = ParamMetrics(
@@ -246,7 +246,7 @@ object MethodAnalyzer extends Analyzer {
           declarationType = "def",
           parentMember = parentMember
         ),
-        cComplexity = 0,
+        complexity = 0,
         nestingDepth = s.defDepth,
         hasScaladoc = hasDoc,
         parameterMetrics = ParamMetrics(

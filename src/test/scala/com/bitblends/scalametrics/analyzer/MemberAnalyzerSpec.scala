@@ -233,7 +233,7 @@ class MemberAnalyzerSpec extends AnyFlatSpec with Matchers {
 
     val valMetric = result.members.find(_.metadata.declarationType == "val")
     valMetric shouldBe defined
-    valMetric.get.cComplexity should be > 1
+    valMetric.get.complexity should be > 1
   }
 
   it should "compute branch density metrics" in {

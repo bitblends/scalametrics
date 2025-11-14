@@ -61,4 +61,34 @@ case class ProjectMetadata(
     developers: Option[String] = None,
     versionScheme: Option[String] = None,
     projectInfoNameFormal: Option[String] = None
-) extends StatsBase
+) extends Serializer {
+
+  /**
+    * Generates a formatted string representation of the project's metadata.
+    *
+    * @return
+    *   A multiline string containing the project's metadata details.
+    */
+  override def formattedString: String = {
+    s"""Project Metadata:
+       |----------------------------------------------------------
+       |  Name: $name
+       |  Version: $version
+       |  Scala Version: $scalaVersion
+       |  Description: ${description.getOrElse("N/A")}
+       |  Cross Scala Versions: ${if (crossScalaVersions.nonEmpty) crossScalaVersions.mkString(", ") else "N/A"}
+       |  Organization: ${organization.getOrElse("N/A")}
+       |  Organization Name: ${organizationName.getOrElse("N/A")}
+       |  Organization Homepage: ${organizationHomepage.getOrElse("N/A")}
+       |  Homepage: ${homepage.getOrElse("N/A")}
+       |  Licenses: ${licenses.getOrElse("N/A")}
+       |  Start Year: ${startYear.getOrElse("N/A")}
+       |  Is Snapshot: ${isSnapshot.getOrElse("N/A")}
+       |  API URL: ${apiURL.getOrElse("N/A")}
+       |  SCM Info: ${scmInfo.getOrElse("N/A")}
+       |  Developers: ${developers.getOrElse("N/A")}
+       |  Version Scheme: ${versionScheme.getOrElse("N/A")}
+       |  Project Info Name Formal: ${projectInfoNameFormal.getOrElse("N/A")}
+       |""".stripMargin
+  }
+}

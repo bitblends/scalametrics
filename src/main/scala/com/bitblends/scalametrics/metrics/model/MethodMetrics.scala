@@ -15,7 +15,7 @@ package com.bitblends.scalametrics.metrics.model
   * @param metadata
   *   Metadata associated with the method. Contains information such as the method's name, access modifier, signature,
   *   lines of code, and other descriptive elements.
-  * @param cComplexity
+  * @param complexity
   *   Cyclomatic complexity of the method, which indicates the number of linearly independent paths through the method's
   *   control flow.
   * @param nestingDepth
@@ -37,7 +37,7 @@ package com.bitblends.scalametrics.metrics.model
   */
 case class MethodMetrics(
     metadata: Metadata,
-    cComplexity: Int,
+    complexity: Int,
     nestingDepth: Int,
     hasScaladoc: Boolean,
     parameterMetrics: ParameterMetrics,

@@ -38,4 +38,4 @@ case class PatternMatchingMetrics(
     nestedMatches: Int = 0,
     avgCasesPerMatch: Double = 0.0,
     matchCases: List[Int] = List.empty
-) extends MetricBase
+)

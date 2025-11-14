@@ -43,4 +43,4 @@ case class ParameterMetrics(
     defaultedParams: Int = 0,
     byNameParams: Int = 0,
     varargParams: Int = 0
-) extends MetricBase
+)

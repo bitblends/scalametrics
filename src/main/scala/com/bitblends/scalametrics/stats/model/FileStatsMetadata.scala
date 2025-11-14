@@ -19,10 +19,6 @@ package com.bitblends.scalametrics.stats.model
   *   Relative path from project root to the file.
   * @param packageName
   *   Fully qualified name of the package containing the file.
-  * @param linesOfCode
-  *   Number of lines of code present within the file.
-  * @param fileSizeBytes
-  *   Size of the file in bytes.
   */
 case class FileStatsMetadata(
     projectId: String,
@@ -32,4 +28,24 @@ case class FileStatsMetadata(
     packageName: String,
     linesOfCode: Int,
     fileSizeBytes: Long
-) {}
+) extends Serializer {
+
+  /**
+    * Generates a formatted string representation of the file's metadata.
+    *
+    * @return
+    *   A multiline string containing the file's metadata details.
+    */
+  override def formattedString: String = {
+    s"""File Stats Metadata:
+       |----------------------------------------------------------
+       |  Project ID: $projectId
+       |  File ID: $fileId
+       |  File Name: $fileName
+       |  File Path: $filePath
+       |  Package Name: $packageName
+       |  Lines of Code: $linesOfCode
+       |  File Size (bytes): $fileSizeBytes
+       |""".stripMargin
+  }
+}

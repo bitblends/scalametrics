@@ -48,4 +48,4 @@ case class InlineAndImplicitMetrics(
     // given
     isGivenInstance: Option[Boolean] = None, // Scala 3 'given'
     isGivenConversion: Option[Boolean] = None
-) extends MetricBase
+)
