@@ -25,7 +25,7 @@ import com.bitblends.scalametrics.metrics.model._
   *   Metadata associated with the method's declaration, providing contextual information such as identity, structure,
   *   access modifiers, and declaration properties.
   *
-  * @param cComplexity
+  * @param complexity
   *   Cyclomatic complexity of the method, representing the number of independent execution paths.
   *
   * @param hasScaladoc
@@ -34,7 +34,7 @@ import com.bitblends.scalametrics.metrics.model._
   * @param nestingDepth
   *   The maximum depth of nested blocks or control structures within the method.
   *
-  * @param paramStats
+  * @param parameterStats
   *   Detailed statistics related to the method's parameters, such as total parameter count, number of implicit
   *   parameters, variadic parameters, and others.
   *
@@ -42,22 +42,42 @@ import com.bitblends.scalametrics.metrics.model._
   *   Inline and implicit-related metrics summarizing characteristics like inline modifiers, implicit conversions, and
   *   given instances or conversions (Scala 3).
   *
-  * @param patternMatchingMetrics
+  * @param patternMatchingStats
   *   Pattern match-related metrics, capturing the structure, nesting, guard clauses, and wildcard usage within the
   *   method.
   *
-  * @param branchDensityMetrics
+  * @param branchDensityStats
   *   Metrics assessing branch density within the method, providing insight into the control flow and branching within
   *   its implementation.
   */
 case class MethodStats(
     metadata: Metadata,
-    cComplexity: Int,
-    hasScaladoc: Boolean,
-    nestingDepth: Int,
-    paramStats: ParameterMetrics,
-    inlineAndImplicitStats: InlineAndImplicitMetrics,
-    patternMatchingMetrics: PatternMatchingMetrics,
-    branchDensityMetrics: BranchDensityMetrics
-) extends StatsBase
-    with MemberBase
+    complexity: Int = 0,
+    hasScaladoc: Boolean = false,
+    nestingDepth: Int = 0,
+    parameterStats: ParameterStats,
+    inlineAndImplicitStats: InlineAndImplicitStats,
+    patternMatchingStats: PatternMatchingStats,
+    branchDensityStats: BranchDensityStats
+) extends SymbolStatsBase
+    with Serializer {
+
+  /**
+    * Combines two MethodStats instances by summing their complexity and merging their metrics.
+    * @return
+    *   A formatted string representation of the current instance.
+    */
+  override def formattedString: String = {
+    s"""MethodStats:
+       |----------------------------------------------------------
+       |  Name: ${metadata.name}
+       |  Cyclomatic Complexity: $complexity
+       |  Has Scaladoc: $hasScaladoc
+       |  Nesting Depth: $nestingDepth
+       |  Parameter Stats: ${parameterStats.formattedString}
+       |  Inline and Implicit Stats: ${inlineAndImplicitStats.formattedString}
+       |  Pattern Matching Stats: ${patternMatchingStats.formattedString}
+       |  Branch Density Stats: ${branchDensityStats.formattedString}
+     """.stripMargin
+  }
+}

@@ -57,7 +57,7 @@ method and member metrics.
 
 ``` scala title="FileMetrics.scala"
 case class FileMetrics(
-    fileMetadata: FileMetadata,
+    metadata: FileMetadata,
     methodMetrics: Vector[MethodMetrics] = Vector.empty,
     memberMetrics: Vector[MemberMetrics] = Vector.empty
 )
@@ -113,7 +113,7 @@ The table below summarizes the parameters of the `MemberMetrics` case class and 
 | Parameter                  | Type                       | Description                                                                              |
 |----------------------------|----------------------------|------------------------------------------------------------------------------------------|
 | `metadata`                 | `Metadata`                 | Structural and property-related information about the member (name, type, access, etc.). |
-| `cComplexity`              | `Int`                      | Cyclomatic complexity measuring independent paths through the member's code.             |
+| `complexity`               | `Int`                      | Cyclomatic complexity measuring independent paths through the member's code.             |
 | `nestingDepth`             | `Int`                      | Depth of nested constructs inside the member.                                            |
 | `hasScaladoc`              | `Boolean`                  | Whether the member has accompanying Scaladoc documentation.                              |
 | `inlineAndImplicitMetrics` | `InlineAndImplicitMetrics` | Inline/implicit/explicitness and Scala 3 `given` details.                                |
@@ -129,7 +129,7 @@ details about parameters and method-specific characteristics.
 | Parameter                  | Type                       | Description                                                                     |
 |----------------------------|----------------------------|---------------------------------------------------------------------------------|
 | `metadata`                 | `Metadata`                 | Metadata for the method (name, signature, access, LoC, etc.).                   |
-| `cComplexity`              | `Int`                      | Cyclomatic complexity of the method.                                            |
+| `complexity`               | `Int`                      | Cyclomatic complexity of the method.                                            |
 | `nestingDepth`             | `Int`                      | Maximum depth of nested control-flow constructs in the method.                  |
 | `hasScaladoc`              | `Boolean`                  | Whether the method is documented with Scaladoc.                                 |
 | `parameterMetrics`         | `ParameterMetrics`         | Parameter counts and characteristics (lists, implicit, by-name, varargs, etc.). |
@@ -241,8 +241,8 @@ The `projectRollup` field contains the overall aggregated statistics for the ent
 ``` scala title="ProjectStats.scala"
 case class ProjectStats(
     metadata: ProjectMetadata,
-    projectRollup: ProjectRollup,
-    packages: Vector[Package]
+    rollup: Rollup,
+    packageStats: Vector[PackageStats]
 )
 ```
 
@@ -251,30 +251,32 @@ case class ProjectStats(
     `ProjectStats` is the foundation case class for aggregated metrics analysis in ScalaMetrics. It encapsulates the overall 
     project statistics along with package and file-level roll-ups. This is what you need for **aggregated metrics** analysis and 
     reporting for your whole project.
-
 <!-- @formatter:on -->
 
-### Package Case Class
+### PackageStats Case Class
 
 This case class encapsulates the aggregated statistics for a specific package within the project, including its
-`PackageRollup` which is the aggregated statistics for all packages in the package, and a collection of `FileStats`
+`rollup` which is the aggregated statistics for all packages in the package, and a collection of `FileStats`
 instances representing the statistics for each file in the package.
 
-``` scala title="Package.scala"
-case class Package(packageRollup: PackageRollup, fileStats: Vector[FileStats])
+``` scala title="PackageStats.scala"
+case class PackageStats(metadata: PackageMetadata, 
+    rollup: Rollup, 
+    fileStats: Vector[FileStats]
+)
 ```
 
 ### FileStats Case Class
 
 This case class encapsulates the aggregated statistics for a specific file within a package. It includes a
-`FileStatsMetadata` containing metadata about the file statistics generation, a `FileRollup` which is the aggregated
+`FileStatsMetadata` containing metadata about the file statistics generation, a `rollup` which is the aggregated
 statistics for the file (using all declarations inside the file such as the members and methods), and a `MemberStats`
 and `MethodStats` vectors containing the aggregated statistics for all declarations (methods and members) in the file.
 
 ``` scala title="FileStats.scala"
 case class FileStats(
     metadata: FileStatsMetadata,
-    fileRollup: FileRollup,
+    rollup: Rollup,
     memberStats: Vector[MemberStats],
     methodStats: Vector[MethodStats]
 )
@@ -319,80 +321,61 @@ Most of the information is optional to accommodate projects that may not provide
 | `versionScheme`         | `Option[String]` | Optional versioning scheme (e.g., "semantic").                   |
 | `projectInfoNameFormal` | `Option[String]` | Optional, formal name for the project.                           |
 
-### ProjectRollup Parameters
+### Rollup Parameters
 
-The table below summarizes the parameters of the `ProjectRollup` case class and what each one represents.
+The table below summarizes the parameters of the `Rollup` case class and what each one represents.
 
-| Parameter                      | Type                     | Description                                                       |
-|--------------------------------|--------------------------|-------------------------------------------------------------------|
-| `totalFiles`                   | `Int`                    | The total number of files in the project.                         |
-| `totalLoc`                     | `Int`                    | The total number of lines of code across all files.               |
-| `totalFunctions`               | `Int`                    | The total number of functions in the project.                     |
-| `totalPublicFunctions`         | `Int`                    | The total number of public functions.                             |
-| `totalPrivateFunctions`        | `Int`                    | The total number of private functions.                            |
-| `averageFileSizeBytes`         | `Long`                   | The average file size in bytes.                                   |
-| `totalFileSizeBytes`           | `Long`                   | The total file size across all files in bytes.                    |
-| `totalSymbols`                 | `Int`                    | The total number of symbols in the project.                       |
-| `totalPublicSymbols`           | `Int`                    | The total number of public symbols.                               |
-| `totalPrivateSymbols`          | `Int`                    | The total number of private symbols.                              |
-| `totalDeprecatedSymbols`       | `Int`                    | The total number of deprecated symbols.                           |
-| `totalDefsValsVars`            | `Int`                    | The total number of defs, vals, and vars.                         |
-| `totalPublicDefsValsVars`      | `Int`                    | The total number of public defs, vals, and vars.                  |
-| `totalNestedSymbols`           | `Int`                    | The total number of nested symbols.                               |
-| `documentedPublicSymbols`      | `Int`                    | The total number of documented public symbols.                    |
-| `avgCyclomaticComplexity`      | `Double`                 | The average cyclomatic complexity across the codebase.            |
-| `maxCyclomaticComplexity`      | `Int`                    | The maximum cyclomatic complexity observed in the codebase.       |
-| `avgNestingDepth`              | `Double`                 | The average nesting depth of code blocks.                         |
-| `maxNestingDepth`              | `Int`                    | The maximum nesting depth observed in the codebase.               |
-| `scalaDocCoverage`             | `Double`                 | The percentage of documented public symbols.                      |
-| `deprecatedSymbolsDensity`     | `Double`                 | The percentage of deprecated symbols across all symbols.          |
-| `inlineAndImplicitStats`       | `InlineAndImplicitStats` | Comprehensive view of inline, implicit, and explicitness metrics. |
-| `patternMatchingStats`         | `PatternMatchingStats`   | Statistics related to pattern matching usage.                     |
-| `branchDensityStats`           | `BranchDensityStats`     | Statistics for branch density and boolean operations.             |
-| `totalPackages`                | `Int`                    | The total number of packages in the project.                      |
-| `packagesWithHighComplexity`   | `Int`                    | Number of packages with average complexity exceeding a threshold. |
-| `packagesWithLowDocumentation` | `Int`                    | Number of packages with documentation coverage below a threshold. |
+| Parameter                            | Type                     | Description                                                                                           |
+|--------------------------------------|--------------------------|-------------------------------------------------------------------------------------------------------|
+| `totalCount`                         | `Int`                    | The total number of items (files, packages, etc.) in the rollup.                                      |
+| `averageFileSizeBytes`               | `Long`                   | The average file size in bytes.                                                                       |
+| `returnTypeExplicitness`             | `Double`                 | The percentage of definitions with explicit return types.                                             |
+| `publicReturnTypeExplicitness`       | `Double`                 | The percentage of public definitions with explicit return types.                                      |
+| `itemsWithHighComplexity`            | `Int`                    | The count of items with average complexity above a defined threshold.                                 |
+| `itemsWithLowDocumentation`          | `Int`                    | The count of items with documentation coverage below a defined threshold.                             |
+| `itemsWithHighNesting`               | `Int`                    | The count of items with average nesting depth above a defined threshold.                              |
+| `itemsWithHighBranchDensity`         | `Int`                    | The count of items with average branch density above a defined threshold.                             |
+| `itemsWithHighPatternMatching`       | `Int`                    | The count of items with average pattern matching statistics above a defined threshold.                |
+| `itemsWithHighParameterCount`        | `Int`                    | he count of items with average parameter count above a defined threshold.                             |
+| `avgCyclomaticComplexity`            | `Double`                 | The average cyclomatic complexity across all items.                                                   |
+| `maxCyclomaticComplexity`            | `Int`                    | The maximum cyclomatic complexity observed among all items.                                           |
+| `avgNestingDepth`                    | `Double`                 | The average nesting depth across all items.                                                           |
+| `maxNestingDepth`                    | `Int`                    | The maximum nesting depth observed among all items.                                                   |
+| `scalaDocCoveragePercentage`         | `Double`                 | The density percentage of deprecated symbols.                                                         |
+| `deprecatedSymbolsDensityPercentage` | `Double`                 | The percentage of deprecated symbols across all symbols.                                              |  
+| `coreStats`                          | `CoreStats`              | Core statistical metrics encapsulated in a `CoreStats` instance.                                      |
+| `inlineAndImplicitStats`             | `InlineAndImplicitStats` | Statistics related to inline and implicit usage encapsulated in an `InlineAndImplicitStats` instance. |
+| `patternMatchingStats`               | `PatternMatchingStats`   | Statistics related to pattern matching encapsulated in a `PatternMatchingStats` instance.             |
+| `branchDensityStats`                 | `BranchDensityStats`     | Statistics related to branch density encapsulated in a `BranchDensityStats` instance.                 | 
+| `parameterStats`                     | `ParameterStats`         | Statistics related to parameter usage encapsulated in a `ParameterStats` instance.                    |
 
-### PackageRollup Parameters
-
-The table below summarizes the parameters of the `PackageRollup` case class and what each one represents.
-
-| Parameter                | Type                     | Description                                       |
-|--------------------------|--------------------------|---------------------------------------------------|
-| `name`                   | `String`                 | The name of the package being analyzed.           |
-| `totalFunctions`         | `Int`                    | The total number of functions within the package. |
-| `publicFunctions`        | `Int`                    | The number of public functions in the package.    |
-| `privateFunctions`       | `Int`                    | The number of private functions in the package.   |
-| `inlineAndImplicitStats` | `InlineAndImplicitStats` | Inline/implicit/given metrics for the package.    |
-| `patternMatchingStats`   | `PatternMatchingStats`   | Pattern matching metrics for the package.         |
-| `branchDensityStats`     | `BranchDensityStats`     | Branch density metrics for the package.           |
 
 ### MemberStats Parameters
 
 MemberStats parameters capture detailed metrics specific to members (such as vals, vars, classes, objects, traits)
 within the codebase.
 
-| Parameter                | Type                       | Description                                                              |
-|--------------------------|----------------------------|--------------------------------------------------------------------------|
-| `metadata`               | `Metadata`                 | Descriptive metadata for the member (identity, structure, access, etc.). |
-| `cComplexity`            | `Int`                      | Cyclomatic complexity of the member.                                     |
-| `hasScaladoc`            | `Boolean`                  | Indicates whether the member is documented with Scaladoc.                |
-| `nestingDepth`           | `Int`                      | The depth of nested blocks/structures within the member.                 |
-| `inlineAndImplicitStats` | `InlineAndImplicitMetrics` | Statistics related to inline/implicit/given usage.                       |
-| `patternMatchingMetrics` | `PatternMatchingMetrics`   | Pattern matching statistics (matches, cases, nesting, etc.).             |
-| `branchDensityMetrics`   | `BranchDensityMetrics`     | Branch density and boolean operation statistics within the member.       |
+| Parameter                | Type                       | Description                                                                                                                                                               |
+|--------------------------|----------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `metadata`               | `Metadata`                 | Descriptive metadata for the member (identity, structure, access, etc.).                                                                                                  |
+| `complexity`             | `Int`                      | Cyclomatic complexity of the member.                                                                                                                                      |
+| `hasScaladoc`            | `Boolean`                  | Indicates whether the member is documented with Scaladoc.                                                                                                                 |
+| `nestingDepth`           | `Int`                      | The maximum depth of nested constructs within the member, providing an indication of structural complexity.                                                               |
+| `inlineAndImplicitStats` | `InlineAndImplicitMetrics` | A set of metrics related to the inline and implicit characteristics of the member, such as the presence of the `inline` modifier, implicit conversions, and abstractness. |
+| `patternMatchingStats`   | `PatternMatchingStats`     | Metrics that assess the complexity and usage of pattern matching constructs within the member, including the  number of cases, guards, and wildcards                      |
+| `branchDensityStats`     | `BranchDensityStats`       | Metrics that provide insights into the branching intensity and density for the member, including counts of branches, loops, and conditional statements.                   |
 
 ### MethodStats Parameters
 
 MethodStats parameters capture detailed metrics specific to methods within the codebase.
 
-| Parameter                | Type                       | Description                                                                |
-|--------------------------|----------------------------|----------------------------------------------------------------------------|
-| `metadata`               | `Metadata`                 | Metadata for the method declaration (identity, structure, and properties). |
-| `cComplexity`            | `Int`                      | Cyclomatic complexity of the method.                                       |
-| `hasScaladoc`            | `Boolean`                  | Indicates whether the method has associated Scaladoc.                      |
-| `nestingDepth`           | `Int`                      | Maximum nesting depth of blocks/control structures within the method.      |
-| `paramStats`             | `ParameterMetrics`         | Parameter-level statistics (total, implicit, by-name, varargs, etc.).      |
-| `inlineAndImplicitStats` | `InlineAndImplicitMetrics` | Inline/implicit/given usage metrics for the method.                        |
-| `patternMatchingMetrics` | `PatternMatchingMetrics`   | Pattern match–related metrics (guards, wildcards, nesting, etc.).          |
-| `branchDensityMetrics`   | `BranchDensityMetrics`     | Branch density metrics assessing control-flow complexity.                  |
+| Parameter                | Type                       | Description                                                                                                                                                |
+|--------------------------|----------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `metadata`               | `Metadata`                 | Metadata for the method declaration (identity, structure, and properties).                                                                                 |
+| `cComplexity`            | `Int`                      | Cyclomatic complexity of the method.                                                                                                                       |
+| `hasScaladoc`            | `Boolean`                  | Indicates whether the method has associated Scaladoc.                                                                                                      |
+| `nestingDepth`           | `Int`                      | The maximum depth of nested blocks or control structures within the method.                                                                                |
+| `paramStats`             | `ParameterStats`           | Detailed statistics related to the method's parameters, such as total parameter count, number of implicit parameters, variadic parameters, and others.     |
+| `inlineAndImplicitStats` | `InlineAndImplicitMetrics` | Inline and implicit-related metrics summarizing characteristics like inline modifiers, implicit conversions, and given instances or conversions (Scala 3). |
+| `patternMatchingStats`   | `PatternMatchingStats`     | Pattern match-related metrics, capturing the structure, nesting, guard clauses, and wildcard usage within the  method.                                     |
+| `branchDensityStats`     | `BranchDensityStats`       | Metrics assessing branch density within the method, providing insight into the control flow and branching within its implementation.                       |

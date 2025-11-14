@@ -15,7 +15,7 @@ package com.bitblends.scalametrics.metrics.model
   * @param metadata
   *   Metadata providing structural and property-related information about the member, such as its name, type,
   *   accessibility, and other descriptive attributes of the symbol.
-  * @param cComplexity
+  * @param complexity
   *   The cyclomatic complexity associated with the member, measuring the number of independent paths through its code.
   * @param nestingDepth
   *   The depth of nested constructs within the member's code, indicating structural complexity and maintainability
@@ -34,7 +34,7 @@ package com.bitblends.scalametrics.metrics.model
   */
 case class MemberMetrics(
     metadata: Metadata,
-    cComplexity: Int,
+    complexity: Int,
     nestingDepth: Int,
     hasScaladoc: Boolean,
     inlineAndImplicitMetrics: InlineAndImplicitMetrics,

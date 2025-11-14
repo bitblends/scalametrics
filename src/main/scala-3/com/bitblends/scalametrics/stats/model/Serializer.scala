@@ -9,10 +9,12 @@ import scala.deriving.Mirror
 import scala.compiletime.constValueTuple
 
 /**
-  * Defines a base trait for statistical models. This serves as a foundation or marker trait for components within the
-  * statistics package and can be extended by specific statistical entities.
+  * Provides serialization utilities for classes that extend this trait. Enables conversion of an instance into a map or
+  * its JSON string representation.
+  *
+  * This trait must be mixed in with classes that extend `Product`, leveraging the product's fields for serialization.
   */
-trait StatsBase extends Product:
+trait Serializer extends Product:
 
   /**
     * Converts the current instance of a class implementing StatsBase into a Map where keys represent the field names of
@@ -21,14 +23,33 @@ trait StatsBase extends Product:
     * @return
     *   a Map[String, Any] representation of the current instance.
     */
-  def toMap: Map[String, Any] = StatsBase.productToMap(this)
+  def toMap: Map[String, Any] = Serializer.productToMap(this)
+
+  /**
+    * Converts the current instance of a class that extends `StatsBase` into its JSON string representation. This method
+    * utilizes the `toMap` method to first convert the instance into a map and then serializes that map into a JSON
+    * string.
+    *
+    * @return
+    *   A JSON-formatted string representation of the current instance.
+    */
+  def toJson: String = Serializer.toJson(toMap)
+
+  /**
+    * Provides a formatted string representation of the current instance. This method can be overridden by subclasses to
+    * provide custom formatting.
+    *
+    * @return
+    *   A formatted string representation of the current instance.
+    */
+  def formattedString: String
 
 /**
   * Companion object for the `StatsBase` trait, providing utility functions to facilitate data transformation,
   * serialization, and manipulation for statistical models. These utilities enable conversion of data structures such as
   * maps and products into alternative representations like flattened maps or JSON strings.
   */
-object StatsBase:
+object Serializer:
 
   /**
     * Flattens a nested map into a single-level map with keys representing the hierarchical path.
@@ -120,14 +141,14 @@ object StatsBase:
     *   the normalized representation of the input value
     */
   private def norm(v: Any): Any = v match {
-    case s: StatsBase => s.toMap
-    case o: Option[_] => o.map(norm).orNull
-    case seq: Seq[_]  => seq.map(norm)
-    case m: Map[_, _] =>
+    case s: Serializer => s.toMap
+    case o: Option[_]  => o.map(norm).orNull
+    case seq: Seq[_]   => seq.map(norm)
+    case m: Map[_, _]  =>
       m.asInstanceOf[Map[Any, Any]].map { case (k, v2) => k.toString -> norm(v2) }
-    case p: Product if !p.isInstanceOf[StatsBase] =>
+    case p: Product if !p.isInstanceOf[Serializer] =>
       // If you want to auto-convert any Product: enable next line, else leave as toString
-      // productToMap(p)
-      p.toString
+      productToMap(p)
+    // p.toString
     case other => other
   }

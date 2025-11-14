@@ -223,7 +223,7 @@ object MemberAnalyzer extends Analyzer {
           isNested = false,
           declarationType = kind
         ),
-        cComplexity = cc,
+        complexity = cc,
         nestingDepth = nestingDepth,
         hasScaladoc = hasScaladoc,
         inlineAndImplicitMetrics = InlineImplicitsMetrics(

@@ -9,7 +9,7 @@ package com.bitblends.scalametrics.metrics.model
   * Represents the result of analyzing metrics for a specific file, including file-level metrics and detailed metrics
   * for the methods and members within the file.
   *
-  * @param fileMetadata
+  * @param metadata
   *   Metrics associated with the file, such as its identifier, size, and lines of code.
   * @param methodMetrics
   *   A collection of metrics for each method in the file, providing detailed insights into method-level
@@ -19,7 +19,7 @@ package com.bitblends.scalametrics.metrics.model
   *   level.
   */
 case class FileMetrics(
-    fileMetadata: FileMetadata,
+    metadata: FileMetadata,
     methodMetrics: Vector[MethodMetrics] = Vector.empty,
     memberMetrics: Vector[MemberMetrics] = Vector.empty
 )

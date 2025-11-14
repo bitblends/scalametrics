@@ -14,7 +14,7 @@ package com.bitblends.scalametrics.stats.model
   *
   * @param metadata
   *   Metadata and header information about the file, including its name, size, and associated package.
-  * @param fileRollup
+  * @param rollup
   *   Aggregated metrics summarizing various attributes of the file, such as lines of code, function statistics, symbol
   *   statistics, and pattern matching usage, among others.
   * @param memberStats
@@ -26,7 +26,31 @@ package com.bitblends.scalametrics.stats.model
   */
 case class FileStats(
     metadata: FileStatsMetadata,
-    fileRollup: FileRollup,
+    rollup: Rollup,
     memberStats: Vector[MemberStats],
     methodStats: Vector[MethodStats]
-)
+) extends Serializer {
+
+  /**
+    * Generates a formatted string representation of the complete statistics for a file.
+    *
+    * The formatted string includes detailed breakdowns of the file's metadata, rollup statistics, member statistics,
+    * and method statistics. Each section is clearly delineated to enhance readability.
+    *
+    * @return
+    *   A multiline string containing the complete statistics and breakdowns for the file.
+    */
+  override def formattedString: String = {
+    s"""========================================================
+       |File Stats:
+       |========================================================
+       |${metadata.formattedString}
+       |Rollup:
+       |${rollup.formattedString}
+       |Member Stats:
+       |${memberStats.map(_.formattedString).mkString("\n")}
+       |Method Stats:
+       |${methodStats.map(_.formattedString).mkString("\n")}
+       |""".stripMargin
+  }
+}

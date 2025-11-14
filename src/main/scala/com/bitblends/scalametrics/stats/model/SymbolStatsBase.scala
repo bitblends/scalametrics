@@ -4,12 +4,7 @@
  */
 
 package com.bitblends.scalametrics.stats.model
-import com.bitblends.scalametrics.metrics.model.{
-  BranchDensityMetrics,
-  InlineAndImplicitMetrics,
-  Metadata,
-  PatternMatchingMetrics
-}
+import com.bitblends.scalametrics.metrics.model.Metadata
 
 /**
   * Represents the base properties and metrics of a member within a codebase.
@@ -26,7 +21,7 @@ import com.bitblends.scalametrics.metrics.model.{
   *     average cases per match.
   *   - Branch density metrics, including branch counts and related boolean operations.
   */
-trait MemberBase {
+trait SymbolStatsBase {
 
   /**
     * Represents the metadata associated with a symbol or declaration within this instance.
@@ -46,7 +41,7 @@ trait MemberBase {
     * complexity of a program. It is calculated based on the number of linearly independent paths through the program's
     * source code.
     */
-  val cComplexity: Int
+  val complexity: Int
 
   /**
     * Represents the maximum level of nesting within a member, such as nested blocks, loops, or conditional structures.
@@ -61,7 +56,7 @@ trait MemberBase {
     * `given` constructs specific to Scala 3. It offers insights into the characteristics and behavior of the member in
     * relation to these constructs within the codebase.
     */
-  val inlineAndImplicitStats: InlineAndImplicitMetrics
+  val inlineAndImplicitStats: InlineAndImplicitStats
 
   /**
     * Holds metrics related to the usage and complexity of pattern matching constructs within the analyzed member.
@@ -69,13 +64,13 @@ trait MemberBase {
     * The `patternMatchingMetrics` field provides detailed insights such as the total number of match expressions,
     * cases, guards, wildcards, and additional properties like nesting depth and case distribution.
     */
-  val patternMatchingMetrics: PatternMatchingMetrics
+  val patternMatchingStats: PatternMatchingStats
 
   /**
     * Represents the branch density metrics associated with a specific code member. The `BranchDensityMetrics` instance
     * provides detailed insights into various branching constructs, their frequency, and density, which helps analyze
     * the complexity and branching logic of the code.
     */
-  val branchDensityMetrics: BranchDensityMetrics
+  val branchDensityStats: BranchDensityStats
 
 }
