@@ -125,8 +125,8 @@ Neither habit slows teams down; both reduce “surprising behavior” bugs and m
 
 ## Folding metrics into everyday work
 
-Metrics are most useful when they’re ambient—visible when you need them, quiet when you don’t. A light‑touch workflow
-works well:
+Metrics work best when they're present but not intrusive. Available when needed, silent otherwise. A lightweight
+workflow is most effective:
 
 - **In pull requests**, add friendly hints. “Nesting depth is 7. Could we early‑return on error paths?” You’re not
   policing style; you’re pointing out friction.
@@ -143,8 +143,8 @@ The effect is cumulative: fewer sharp edges, fewer surprises, and a codebase tha
 
 It’s possible to “game” metrics without improving the code, splitting a monster function into five confusing ones, for
 instance. The antidote is qualitative review: ask whether the new shape is _easier to read and test_. Another trap is
-applying the same thresholds everywhere. Domain‑heavy parsing and tiny I/O wrappers shouldn’t be judged by a single
-ruler. Establish per‑module baselines and you’ll avoid a lot of unproductive debate.
+applying the same thresholds everywhere. A single ruler shouldn’t judge domain‑heavy parsing and tiny I/O wrappers.
+Establish per‑module baselines, and you’ll avoid a lot of unproductive debate.
 
 Finally, don’t tighten the screws too early. Blocking builds for modest outliers before you have a baseline can stall
 delivery and sour people on the whole idea. Start soft; get the trend moving; then decide where to hold the line.
@@ -158,5 +158,5 @@ there’s usually a metric nearby ready to guide you.
 <br><br>
 
 ---
-*Metrics won’t write clean code for you—but they focus attention where it matters, reduce risk, and make your Scala
+*Metrics won’t write clean code for you, but they focus attention where it matters, reduce risk, and make your Scala
 codebase easier to evolve.*
