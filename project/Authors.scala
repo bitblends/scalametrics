@@ -4,10 +4,10 @@ object Authors {
 
   val authors = List(
     Developer(
-      id = "benjaminfsaff",
+      id = "benjaminsaff",
       name = "Benjamin Saff",
       email = "572259+benjaminsaff@users.noreply.github.com",
-      url = url("https://github.com/benjaminfsaff")
+      url = url("https://github.com/benjaminsaff")
     )
   )
 }

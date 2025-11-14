@@ -54,7 +54,8 @@ object ScalaMetrics {
         projectInfo,
         dialectOverride,
         analyzers
-      )
+      ),
+      Some(projectBaseDir)
     )
   }
 
