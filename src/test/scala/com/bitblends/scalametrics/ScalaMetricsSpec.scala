@@ -2114,7 +2114,10 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
       isSnapshot = Some("true"),
       apiURL = Some("https://api.example.com"),
       scmInfo = Some("git@github.com:example/project.git"),
-      developers = Some("John Doe, Jane Smith"),
+      developers = Seq(
+        "John Doe (email: jd@email.com, url: https://github.com/jd12343524)",
+        "Jane Doe (email: jd@example.com, url: https://github.com/Jd553524352)"
+      ),
       versionScheme = Some("semver"),
       projectInfoNameFormal = Some("Full Metadata Statistics Project")
     )
@@ -2141,7 +2144,10 @@ class ScalaMetricsSpec extends AnyFlatSpec with Matchers {
     header.isSnapshot shouldBe Some("true")
     header.apiURL shouldBe Some("https://api.example.com")
     header.scmInfo shouldBe Some("git@github.com:example/project.git")
-    header.developers shouldBe Some("John Doe, Jane Smith")
+    header.developers shouldBe Seq(
+      "John Doe (email: jd@email.com, url: https://github.com/jd12343524)",
+      "Jane Doe (email: jd@example.com, url: https://github.com/Jd553524352)"
+    )
     header.versionScheme shouldBe Some("semver")
     header.projectInfoNameFormal shouldBe Some("Full Metadata Statistics Project")
 

@@ -77,7 +77,7 @@ Keep comments **close** to code so they travel with refactors.
 
 ### 2. Explain givens/instances
 
-Context parameters and conversions are invisible at call sites—documentation is your primary defense against surprise.
+Context parameters and conversions are invisible at call sites. Documentation is your primary defense against surprise.
 
 ```scala
 /** Low-priority fallback instances for JSON encoding. */
@@ -91,5 +91,5 @@ given fallbackEncoder: Encoder[Foo] = ???
 
 ### 3. Keep docs alive
 
-Make it easy to update docs during code changes: short, local comments; doc tests; pre‑commit hooks that lint stale
+Make it easy to update docs during code changes: short, local comments, doc tests, pre‑commit hooks that lint stale
 references. Coverage is the dashboard, but the habit is what keeps readers happy.

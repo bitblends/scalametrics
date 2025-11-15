@@ -58,7 +58,7 @@ case class ProjectMetadata(
     isSnapshot: Option[String] = None,
     apiURL: Option[String] = None,
     scmInfo: Option[String] = None,
-    developers: Option[String] = None,
+    developers: Seq[String] = Seq.empty,
     versionScheme: Option[String] = None,
     projectInfoNameFormal: Option[String] = None
 ) extends Serializer {
@@ -86,7 +86,7 @@ case class ProjectMetadata(
        |  Is Snapshot: ${isSnapshot.getOrElse("N/A")}
        |  API URL: ${apiURL.getOrElse("N/A")}
        |  SCM Info: ${scmInfo.getOrElse("N/A")}
-       |  Developers: ${developers.getOrElse("N/A")}
+       |  Developers: ${if (developers.nonEmpty) developers.mkString(", ") else "N/A"}
        |  Version Scheme: ${versionScheme.getOrElse("N/A")}
        |  Project Info Name Formal: ${projectInfoNameFormal.getOrElse("N/A")}
        |""".stripMargin

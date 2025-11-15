@@ -64,7 +64,7 @@ case class ProjectInfo(
     isSnapshot: Option[String] = None,
     apiURL: Option[String] = None,
     scmInfo: Option[String] = None,
-    developers: Option[String] = None,
+    developers: Seq[String] = Seq.empty,
     versionScheme: Option[String] = None,
     projectInfoNameFormal: Option[String] = None
 )
@@ -156,7 +156,7 @@ object ProjectInfo {
       isSnapshot: Option[String],
       apiURL: Option[String],
       scmInfo: Option[String],
-      developers: Option[String],
+      developers: Seq[String],
       versionScheme: Option[String],
       projectInfoNameFormal: Option[String]
   ): ProjectInfo = ProjectInfo(
