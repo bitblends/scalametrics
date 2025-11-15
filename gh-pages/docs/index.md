@@ -22,20 +22,19 @@ toc: true
 
 > The most comprehensive code metrics and analysis library for Scala
 
+<!-- @formatter:off -->
+<!-- format: off -->
 <div markdown class="badges">
 
-[![Release](https://img.shields.io/github/v/release/bitblends/scalametrics?sort=semver&style=flat&color=darkgreen&labelColor=2f363d&logo=github&logoColor=white)](https://github.com/bitblends/scalametrics/releases/latest){:
-target="_blank"}
-[![Maven Central](https://img.shields.io/maven-central/v/com.bitblends/scalametrics_2.13?style=flat&color=darkgreen&labelColor=2f363d&logo=Sonatype&logoColor=white)](https://central.sonatype.com/artifact/com.bitblends/scalametrics_2.13){:
-target="_blank",style="margin-right: 10px;"}
-[![CI](https://img.shields.io/github/actions/workflow/status/bitblends/scalametrics/ci.yml?branch=main&style=flat&color=green&labelColor=2f363d)](https://github.com/bitblends/scalametrics/actions/workflows/ci.yml?query=branch%3Amain){:
-target="_blank"}
-[![Scala versions](https://img.shields.io/badge/Scala-2.12%20%7C%202.13%20%7C%203-ff4757?style=flat&color=red&labelColor=2f363d&logo=scala&logoColor=white)](https://www.scala-lang.org){:
-target="_blank"}
-[![License](https://img.shields.io/badge/License-MIT-3?style=flat&color=yellow&labelColor=2f363d&logoColor=white)](LICENSE){:
-target="_blank"}
+[![Release](https://img.shields.io/github/v/release/bitblends/scalametrics?sort=semver&style=flat&color=darkgreen&labelColor=2f363d&logo=github&logoColor=white)](https://github.com/bitblends/scalametrics/releases/latest){:target="_blank"}
+[![Maven Central](https://img.shields.io/maven-central/v/com.bitblends/scalametrics_2.13?style=flat&color=darkgreen&labelColor=2f363d&logo=Sonatype&logoColor=white)](https://central.sonatype.com/artifact/com.bitblends/scalametrics_2.13){:target="_blank",style="margin-right: 10px;"}
+[![CI](https://img.shields.io/github/actions/workflow/status/bitblends/scalametrics/ci.yml?branch=main&style=flat&color=green&labelColor=2f363d)](https://github.com/bitblends/scalametrics/actions/workflows/ci.yml?query=branch%3Amain){:target="_blank"}
+[![Scala versions](https://img.shields.io/badge/Scala-2.12%20%7C%202.13%20%7C%203-ff4757?style=flat&color=red&labelColor=2f363d&logo=scala&logoColor=white)](https://www.scala-lang.org){:target="_blank"}
+[![License](https://img.shields.io/badge/License-MIT-3?style=flat&color=yellow&labelColor=2f363d&logoColor=white)](LICENSE){:target="_blank"}
 
 </div>
+<!-- format: on -->
+<!-- @formatter:on -->
 
 <p>
 ScalaMetrics is a powerful static analysis library for Scala projects. It provides comprehensive analysis at multiple granularity levels: project, package, file, method, and member.
